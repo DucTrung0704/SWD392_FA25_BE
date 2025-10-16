@@ -1,10 +1,10 @@
-import mongoose from "mongoose";
+const mongoose = require('mongoose');
 
 const flashcardDeckSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: String,
-    created_by: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    created_at: { type: Date, default: Date.now }
+    created_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    created_at: { type: Date, default: Date.now },
 });
 
-export default mongoose.model("FlashcardDeck", flashcardDeckSchema);
+module.exports = mongoose.model('FlashcardDeck', flashcardDeckSchema);

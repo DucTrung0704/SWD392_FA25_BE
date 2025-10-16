@@ -9,7 +9,7 @@ const connectDB = require('./config/db');
 
 // Import routes
 const userRouter = require('./routes/user.routes');
-
+const flashcardDeckRoutes = require('./routes/deck.routes');
 // ==================================================
 // ✅ 1️⃣  Kết nối MongoDB
 // ==================================================
@@ -54,7 +54,7 @@ const verifyToken = (req, res, next) => {
 
 // Public routes
 app.use('/api/user', userRouter);
-
+app.use('/api/deck', flashcardDeckRoutes);
 // Protected routes (example)
 app.get('/api/user/profile', verifyToken, (req, res) => {
   res.status(200).json({
