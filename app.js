@@ -7,16 +7,13 @@ const createError = require('http-errors');
 const jwt = require('jsonwebtoken');
 const connectDB = require('./config/db');
 
-// Import routes
-const userRouter = require('./routes/user.routes');
-const flashcardDeckRoutes = require('./routes/deck.routes');
 // ==================================================
 // ✅ 1️⃣  Kết nối MongoDB
 // ==================================================
 connectDB();
 
 // ==================================================
-// ✅ 2️⃣  Khởi tạo ứng dụng
+// ✅ 2️⃣  Khởi tạo ứng dụng Express
 // ==================================================
 const app = express();
 
@@ -27,6 +24,11 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+// Cho phép truy cập ảnh trong thư mục /upload (avatar, flashcards,...)
+app.use('/upload', express.static(path.join(__dirname, 'upload')));
+
+// Public assets (nếu có)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ==================================================
@@ -49,13 +51,20 @@ const verifyToken = (req, res, next) => {
 };
 
 // ==================================================
-// ✅ 5️⃣  Routes
+// ✅ 5️⃣  Import routes
 // ==================================================
+const userRoutes = require('./routes/user.routes');
+const flashcardDeckRoutes = require('./routes/deck.routes');
+const flashcardRoutes = require('./routes/flashcard.routes');
 
-// Public routes
-app.use('/api/user', userRouter);
+// ==================================================
+// ✅ 6️⃣  Gắn routes vào app
+// ==================================================
+app.use('/api/user', userRoutes);
 app.use('/api/deck', flashcardDeckRoutes);
-// Protected routes (example)
+app.use('/api/flashcard', flashcardRoutes);
+
+// ✅ Route test token (protected)
 app.get('/api/user/profile', verifyToken, (req, res) => {
   res.status(200).json({
     message: 'Token valid ✅',
@@ -63,13 +72,13 @@ app.get('/api/user/profile', verifyToken, (req, res) => {
   });
 });
 
-// Health check (root endpoint)
+// ✅ Route gốc (Health Check)
 app.get('/', (req, res) => {
   res.json({ message: 'MathFlash API running 🚀' });
 });
 
 // ==================================================
-// ✅ 6️⃣  Error Handling
+// ✅ 7️⃣  Error Handling
 // ==================================================
 
 // 404 Not Found
