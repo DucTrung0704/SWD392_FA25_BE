@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const flashcardDeckSchema = new mongoose.Schema({
     title: { type: String, required: true },
@@ -7,4 +7,4 @@ const flashcardDeckSchema = new mongoose.Schema({
     created_at: { type: Date, default: Date.now },
 });
 
-module.exports = mongoose.model('FlashcardDeck', flashcardDeckSchema);
+export default mongoose.model('FlashcardDeck', flashcardDeckSchema);

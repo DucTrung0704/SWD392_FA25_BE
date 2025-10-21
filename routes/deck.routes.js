@@ -1,14 +1,14 @@
-const express = require('express');
-const {
+import express from 'express';
+import {
     createDeck,
     getAllDecks,
     getDeckById,
     updateDeck,
     deleteDeck,
-} = require('../controllers/deck.controller');
+} from '../controllers/deck.controller.js';
 
-const { verifyToken } = require('../middleware/auth.middleware');
-const { allowRoles } = require('../middleware/role.middleware');
+import { verifyToken } from '../middleware/auth.middleware.js';
+import { allowRoles } from '../middleware/role.middleware.js';
 
 const router = express.Router();
 
@@ -21,4 +21,4 @@ router.post('/teacher/create', verifyToken, allowRoles('Teacher', 'Admin'), crea
 router.put('/teacher/update/:id', verifyToken, allowRoles('Teacher', 'Admin'), updateDeck);
 router.delete('/teacher/delete/:id', verifyToken, allowRoles('Teacher', 'Admin'), deleteDeck);
 
-module.exports = router;
+export default router;

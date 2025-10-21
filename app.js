@@ -1,11 +1,16 @@
-require('dotenv').config();
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const createError = require('http-errors');
-const jwt = require('jsonwebtoken');
-const connectDB = require('./config/db');
+import dotenv from 'dotenv';
+dotenv.config();
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import cookieParser from 'cookie-parser';
+import logger from 'morgan';
+import createError from 'http-errors';
+import jwt from 'jsonwebtoken';
+import connectDB from './config/db.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // ==================================================
 // ✅ 1️⃣  Kết nối MongoDB
@@ -53,9 +58,9 @@ const verifyToken = (req, res, next) => {
 // ==================================================
 // ✅ 5️⃣  Import routes
 // ==================================================
-const userRoutes = require('./routes/user.routes');
-const flashcardDeckRoutes = require('./routes/deck.routes');
-const flashcardRoutes = require('./routes/flashcard.routes');
+import userRoutes from './routes/user.routes.js';
+import flashcardDeckRoutes from './routes/deck.routes.js';
+import flashcardRoutes from './routes/flashcard.routes.js';
 
 // ==================================================
 // ✅ 6️⃣  Gắn routes vào app
@@ -95,4 +100,4 @@ app.use((err, req, res, next) => {
   });
 });
 
-module.exports = app;
+export default app;

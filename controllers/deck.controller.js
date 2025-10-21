@@ -1,9 +1,9 @@
-const FlashcardDeck = require('../models/deck.model');
+import FlashcardDeck from '../models/deck.model.js';
 
 // =============================
 // 🔹 CREATE DECK (Teacher only)
 // =============================
-exports.createDeck = async (req, res) => {
+export const createDeck = async (req, res) => {
     try {
         const { title, description } = req.body;
 
@@ -22,7 +22,7 @@ exports.createDeck = async (req, res) => {
 // =============================
 // 🔹 GET ALL DECKS (Public / Student allowed)
 // =============================
-exports.getAllDecks = async (req, res) => {
+export const getAllDecks = async (req, res) => {
     try {
         const decks = await FlashcardDeck.find()
             .populate('created_by', 'name email role')
@@ -37,7 +37,7 @@ exports.getAllDecks = async (req, res) => {
 // =============================
 // 🔹 GET DECK BY ID
 // =============================
-exports.getDeckById = async (req, res) => {
+export const getDeckById = async (req, res) => {
     try {
         const deck = await FlashcardDeck.findById(req.params.id).populate('created_by', 'name email');
         if (!deck) return res.status(404).json({ message: 'Deck not found' });
@@ -50,7 +50,7 @@ exports.getDeckById = async (req, res) => {
 // =============================
 // 🔹 UPDATE DECK (Teacher only)
 // =============================
-exports.updateDeck = async (req, res) => {
+export const updateDeck = async (req, res) => {
     try {
         const { id } = req.params;
         const deck = await FlashcardDeck.findById(id);
@@ -74,7 +74,7 @@ exports.updateDeck = async (req, res) => {
 // =============================
 // 🔹 DELETE DECK (Teacher only)
 // =============================
-exports.deleteDeck = async (req, res) => {
+export const deleteDeck = async (req, res) => {
     try {
         const { id } = req.params;
         const deck = await FlashcardDeck.findById(id);

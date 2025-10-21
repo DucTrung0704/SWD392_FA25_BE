@@ -1,16 +1,16 @@
-const express = require('express');
-const {
+import express from 'express';
+import {
     createFlashcard,
     getAllFlashcards,
     getFlashcardById,
     updateFlashcard,
     deleteFlashcard,
     getFlashcardsByDeck,
-} = require('../controllers/flashcard.controller');
+} from '../controllers/flashcard.controller.js';
 
-const { verifyToken } = require('../middleware/auth.middleware');
-const { allowRoles } = require('../middleware/role.middleware');
-const upload = require('../config/multer');
+import { verifyToken } from '../middleware/auth.middleware.js';
+import { allowRoles } from '../middleware/role.middleware.js';
+import upload from '../config/multer.js';
 
 const router = express.Router();
 
@@ -49,4 +49,4 @@ router.delete(
     deleteFlashcard
 );
 
-module.exports = router;
+export default router;

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const flashcardSchema = new mongoose.Schema({
     deck_id: {
@@ -28,4 +28,4 @@ const flashcardSchema = new mongoose.Schema({
     },
 });
 
-module.exports = mongoose.model('Flashcard', flashcardSchema);
+export default mongoose.model('Flashcard', flashcardSchema);

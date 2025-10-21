@@ -1,10 +1,10 @@
-const Flashcard = require('../models/flashcard.model');
-const path = require('path');
+import Flashcard from '../models/flashcard.model.js';
+import path from 'path';
 
 // ==================================================
 // 🔹 CREATE FLASHCARD (Teacher only)
 // ==================================================
-exports.createFlashcard = async (req, res) => {
+export const createFlashcard = async (req, res) => {
     try {
         const { deck_id, tag, note } = req.body;
 
@@ -33,7 +33,7 @@ exports.createFlashcard = async (req, res) => {
 // ==================================================
 // 🔹 GET ALL FLASHCARDS (All users - optional)
 // ==================================================
-exports.getAllFlashcards = async (req, res) => {
+export const getAllFlashcards = async (req, res) => {
     try {
         const cards = await Flashcard.find().sort({ created_at: -1 });
         res.json({ count: cards.length, flashcards: cards });
@@ -45,7 +45,7 @@ exports.getAllFlashcards = async (req, res) => {
 // ==================================================
 // 🔹 GET FLASHCARDS BY DECK (Student / Teacher)
 // ==================================================
-exports.getFlashcardsByDeck = async (req, res) => {
+export const getFlashcardsByDeck = async (req, res) => {
     try {
         const { deckId } = req.params;
         const flashcards = await Flashcard.find({ deck_id: deckId }).sort({ created_at: -1 });
@@ -67,7 +67,7 @@ exports.getFlashcardsByDeck = async (req, res) => {
 // ==================================================
 // 🔹 GET SINGLE FLASHCARD BY ID
 // ==================================================
-exports.getFlashcardById = async (req, res) => {
+export const getFlashcardById = async (req, res) => {
     try {
         const card = await Flashcard.findById(req.params.id);
         if (!card) return res.status(404).json({ message: 'Flashcard not found' });
@@ -80,7 +80,7 @@ exports.getFlashcardById = async (req, res) => {
 // ==================================================
 // 🔹 UPDATE FLASHCARD (Teacher only)
 // ==================================================
-exports.updateFlashcard = async (req, res) => {
+export const updateFlashcard = async (req, res) => {
     try {
         const { id } = req.params;
         const { tag, note } = req.body;
@@ -108,7 +108,7 @@ exports.updateFlashcard = async (req, res) => {
 // ==================================================
 // 🔹 DELETE FLASHCARD (Teacher only)
 // ==================================================
-exports.deleteFlashcard = async (req, res) => {
+export const deleteFlashcard = async (req, res) => {
     try {
         const card = await Flashcard.findById(req.params.id);
         if (!card) return res.status(404).json({ message: 'Flashcard not found' });
