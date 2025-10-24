@@ -31,6 +31,8 @@
     "pdf-parse": "^1.1.1",
     "sharp": "^0.33.2",
     "socket.io": "^4.7.5",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "validator": "^13.11.0"
   }
 }

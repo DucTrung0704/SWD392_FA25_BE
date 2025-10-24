@@ -8,6 +8,8 @@ import logger from 'morgan';
 import createError from 'http-errors';
 import jwt from 'jsonwebtoken';
 import connectDB from './config/db.js';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './swagger/swagger.config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -69,17 +71,21 @@ app.use('/api/user', userRoutes);
 app.use('/api/deck', flashcardDeckRoutes);
 app.use('/api/flashcard', flashcardRoutes);
 
-// ✅ Route test token (protected)
-app.get('/api/user/profile', verifyToken, (req, res) => {
-  res.status(200).json({
-    message: 'Token valid ✅',
-    user: req.user,
-  });
-});
+// ==================================================
+// ✅ 8️⃣  Swagger Documentation
+// ==================================================
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'MathFlash API Documentation'
+}));
 
 // ✅ Route gốc (Health Check)
 app.get('/', (req, res) => {
-  res.json({ message: 'MathFlash API running 🚀' });
+  res.json({ 
+    message: 'MathFlash API running 🚀',
+    documentation: 'Visit /api-docs for API documentation'
+  });
 });
 
 // ==================================================
