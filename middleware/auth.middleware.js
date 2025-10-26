@@ -18,14 +18,28 @@ export const verifyToken = (req, res, next) => {
 export const allowRoles = (...allowedRoles) => {
     return (req, res, next) => {
         if (!req.user) {
-            return res.status(401).json({ message: "Authentication required" });
+            return res.status(401).json({ 
+                message: "Authentication required",
+                code: "AUTH_REQUIRED"
+            });
         }
 
         const userRole = req.user.role;
         
+        // Validate role exists
+        const validRoles = ['Admin', 'Teacher', 'Student'];
+        if (!validRoles.includes(userRole)) {
+            return res.status(403).json({ 
+                message: "Invalid user role",
+                code: "INVALID_ROLE",
+                userRole: userRole
+            });
+        }
+        
         if (!allowedRoles.includes(userRole)) {
             return res.status(403).json({ 
                 message: `Access denied. Required role: ${allowedRoles.join(' or ')}. Your role: ${userRole}`,
+                code: "INSUFFICIENT_PERMISSIONS",
                 requiredRoles: allowedRoles,
                 userRole: userRole
             });

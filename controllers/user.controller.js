@@ -5,14 +5,59 @@ import path from 'path';
 
 const registerUser = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
-        const existing = await User.findOne({ email });
-        if (existing) return res.status(400).json({ message: 'Email already exists' });
+        const { name, email, password, role = 'Student' } = req.body;
+        
+        // Validate role
+        const validRoles = ['Admin', 'Teacher', 'Student'];
+        if (role && !validRoles.includes(role)) {
+            return res.status(400).json({ 
+                message: 'Invalid role. Must be Admin, Teacher, or Student',
+                validRoles: validRoles
+            });
+        }
 
+        // Check if email already exists
+        const existing = await User.findOne({ email: email.toLowerCase() });
+        if (existing) {
+            return res.status(400).json({ 
+                message: 'Email already exists',
+                code: 'EMAIL_EXISTS'
+            });
+        }
+
+        // Hash password
         const hashed = await bcrypt.hash(password, 10);
-        const user = await User.create({ name, email, password: hashed, role });
-        res.status(201).json({ message: 'User registered', user });
+        
+        // Create user
+        const user = await User.create({ 
+            name: name.trim(), 
+            email: email.toLowerCase().trim(), 
+            password: hashed, 
+            role: role || 'Student'
+        });
+
+        // Return user without password
+        const userResponse = {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            avatar: user.avatar,
+            created_at: user.created_at
+        };
+
+        res.status(201).json({ 
+            message: 'User registered successfully', 
+            user: userResponse 
+        });
     } catch (error) {
+        if (error.name === 'ValidationError') {
+            const errors = Object.values(error.errors).map(err => err.message);
+            return res.status(400).json({ 
+                message: 'Validation error', 
+                errors: errors 
+            });
+        }
         res.status(500).json({ message: error.message });
     }
 };
@@ -20,18 +65,64 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await User.findOne({ email });
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        
+        // Find user by email (case insensitive)
+        const user = await User.findOne({ email: email.toLowerCase() });
+        if (!user) {
+            return res.status(404).json({ 
+                message: 'User not found',
+                code: 'USER_NOT_FOUND'
+            });
+        }
 
+        // Check if user is active
+        if (!user.isActive) {
+            return res.status(403).json({ 
+                message: 'Account is deactivated',
+                code: 'ACCOUNT_DEACTIVATED'
+            });
+        }
+
+        // Verify password
         const valid = await bcrypt.compare(password, user.password);
-        if (!valid) return res.status(401).json({ message: 'Invalid credentials' });
+        if (!valid) {
+            return res.status(401).json({ 
+                message: 'Invalid credentials',
+                code: 'INVALID_CREDENTIALS'
+            });
+        }
 
+        // Update last login
+        await User.findByIdAndUpdate(user._id, { lastLogin: new Date() });
+
+        // Generate JWT token
         const token = jwt.sign(
-            { id: user._id, role: user.role },
+            { 
+                id: user._id, 
+                role: user.role,
+                email: user.email,
+                name: user.name
+            },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
-        res.json({ message: 'Login success', token, user });
+
+        // Return user data without password
+        const userResponse = {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            avatar: user.avatar,
+            lastLogin: user.lastLogin,
+            created_at: user.created_at
+        };
+
+        res.json({ 
+            message: 'Login successful', 
+            token, 
+            user: userResponse 
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -142,25 +233,47 @@ const updateUserRole = async (req, res) => {
         const { role } = req.body;
         
         // Validate role
-        if (!['Admin', 'Teacher', 'Student'].includes(role)) {
+        const validRoles = ['Admin', 'Teacher', 'Student'];
+        if (!validRoles.includes(role)) {
             return res.status(400).json({ 
-                message: 'Invalid role. Must be Admin, Teacher, or Student' 
+                message: 'Invalid role. Must be Admin, Teacher, or Student',
+                validRoles: validRoles
+            });
+        }
+        
+        // Prevent admin from changing their own role
+        if (req.user.id === id && role !== 'Admin') {
+            return res.status(400).json({ 
+                message: 'Cannot change your own role from Admin' 
             });
         }
         
         const user = await User.findByIdAndUpdate(
             id,
-            { role },
+            { 
+                role,
+                updated_at: new Date()
+            },
             { new: true, select: '-password' }
         );
         
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ 
+                message: 'User not found',
+                code: 'USER_NOT_FOUND'
+            });
         }
         
         res.json({
             message: 'User role updated successfully',
-            user
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                avatar: user.avatar,
+                updated_at: user.updated_at
+            }
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
