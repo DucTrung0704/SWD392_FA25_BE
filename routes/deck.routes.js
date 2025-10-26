@@ -5,20 +5,42 @@ import {
     getDeckById,
     updateDeck,
     deleteDeck,
+    getMyDecks,
+    getDecksByTeacher
 } from '../controllers/deck.controller.js';
 
-import { verifyToken } from '../middleware/auth.middleware.js';
-import { allowRoles } from '../middleware/role.middleware.js';
+import { 
+    verifyToken, 
+    allowRoles, 
+    requireTeacherOrAdmin,
+    checkOwnership 
+} from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
-// 👩‍🎓 Student - View only
+// ==================================================
+// 🔓 PUBLIC ROUTES (Có thể cần xác thực tùy theo logic)
+// ==================================================
+
+// ==================================================
+// 👩‍🎓 STUDENT ROUTES (Student có thể xem)
+// ==================================================
 router.get('/all', verifyToken, getAllDecks);
 router.get('/all/:id', verifyToken, getDeckById);
 
-// 👨‍🏫 Teacher - CRUD
-router.post('/teacher/create', verifyToken, allowRoles('Teacher', 'Admin'), createDeck);
-router.put('/teacher/update/:id', verifyToken, allowRoles('Teacher', 'Admin'), updateDeck);
-router.delete('/teacher/delete/:id', verifyToken, allowRoles('Teacher', 'Admin'), deleteDeck);
+// ==================================================
+// 👨‍🏫 TEACHER ROUTES (Teacher và Admin có thể truy cập)
+// ==================================================
+router.post('/teacher/create', verifyToken, requireTeacherOrAdmin, createDeck);
+router.get('/teacher/my-decks', verifyToken, requireTeacherOrAdmin, getMyDecks);
+router.get('/teacher/:teacherId', verifyToken, requireTeacherOrAdmin, getDecksByTeacher);
+router.put('/teacher/update/:id', verifyToken, requireTeacherOrAdmin, checkOwnership(), updateDeck);
+router.delete('/teacher/delete/:id', verifyToken, requireTeacherOrAdmin, checkOwnership(), deleteDeck);
+
+// ==================================================
+// 👨‍💼 ADMIN ROUTES (Chỉ Admin)
+// ==================================================
+router.get('/admin/all', verifyToken, allowRoles('Admin'), getAllDecks);
+router.delete('/admin/delete/:id', verifyToken, allowRoles('Admin'), deleteDeck);
 
 export default router;

@@ -104,4 +104,107 @@ const getUserProfile = async (req, res) => {
     }
 };
 
-export { registerUser, loginUser, updateUser, getUserProfile };
+// Admin functions
+const getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find().select('-password').sort({ created_at: -1 });
+        res.json({
+            message: 'All users retrieved successfully',
+            users,
+            total: users.length
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getUserById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findById(id).select('-password');
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        res.json({
+            message: 'User retrieved successfully',
+            user
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const updateUserRole = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { role } = req.body;
+        
+        // Validate role
+        if (!['Admin', 'Teacher', 'Student'].includes(role)) {
+            return res.status(400).json({ 
+                message: 'Invalid role. Must be Admin, Teacher, or Student' 
+            });
+        }
+        
+        const user = await User.findByIdAndUpdate(
+            id,
+            { role },
+            { new: true, select: '-password' }
+        );
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        res.json({
+            message: 'User role updated successfully',
+            user
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Prevent admin from deleting themselves
+        if (req.user.id === id) {
+            return res.status(400).json({ 
+                message: 'Cannot delete your own account' 
+            });
+        }
+        
+        const user = await User.findByIdAndDelete(id);
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        res.json({
+            message: 'User deleted successfully',
+            deletedUser: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export { 
+    registerUser, 
+    loginUser, 
+    updateUser, 
+    getUserProfile,
+    getAllUsers,
+    getUserById,
+    updateUserRole,
+    deleteUser
+};

@@ -91,3 +91,43 @@ export const deleteDeck = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// =============================
+// 🔹 GET MY DECKS (Teacher only)
+// =============================
+export const getMyDecks = async (req, res) => {
+    try {
+        const teacherId = req.user.id;
+        const decks = await FlashcardDeck.find({ created_by: teacherId })
+            .populate('created_by', 'name email')
+            .sort({ created_at: -1 });
+
+        res.json({
+            message: 'My decks retrieved successfully',
+            decks,
+            total: decks.length
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// =============================
+// 🔹 GET DECKS BY TEACHER (Teacher/Admin only)
+// =============================
+export const getDecksByTeacher = async (req, res) => {
+    try {
+        const { teacherId } = req.params;
+        const decks = await FlashcardDeck.find({ created_by: teacherId })
+            .populate('created_by', 'name email role')
+            .sort({ created_at: -1 });
+
+        res.json({
+            message: 'Teacher decks retrieved successfully',
+            decks,
+            total: decks.length
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
