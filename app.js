@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken';
 import connectDB from './config/db.js';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './swagger/swagger.config.js';
+import cors from 'cors';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,6 +28,15 @@ const app = express();
 // ==================================================
 // ✅ 3️⃣  Middleware cơ bản
 // ==================================================
+
+// CORS Configuration - Cho phép frontend gọi API
+app.use(cors({
+  origin: 'http://localhost:5173',  // Cho phép frontend Vite
+  credentials: true,  // Cho phép gửi cookies
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
