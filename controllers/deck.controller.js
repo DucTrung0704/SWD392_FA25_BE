@@ -5,7 +5,7 @@ import FlashcardDeck from '../models/deck.model.js';
 // =============================
 export const createDeck = async (req, res) => {
     try {
-        const { title, description, status, difficulty } = req.body;
+        const { title, description, status, isPublic, difficulty } = req.body;
 
         // Validate required fields
         if (!title) {
@@ -17,9 +17,12 @@ export const createDeck = async (req, res) => {
             return res.status(401).json({ message: 'User authentication required' });
         }
 
-        // Validate status if provided (must be boolean)
-        if (status !== undefined && typeof status !== 'boolean') {
-            return res.status(400).json({ message: 'Status must be a boolean (true = public, false = draft)' });
+        // Xử lý isPublic (ưu tiên) hoặc status (backward compatibility)
+        const publicStatus = isPublic !== undefined ? isPublic : (status !== undefined ? status : false);
+
+        // Validate isPublic/status if provided (must be boolean)
+        if (typeof publicStatus !== 'boolean') {
+            return res.status(400).json({ message: 'isPublic must be a boolean (true = public, false = private)' });
         }
 
         // Validate difficulty if provided
@@ -30,7 +33,8 @@ export const createDeck = async (req, res) => {
         const newDeck = await FlashcardDeck.create({
             title,
             description,
-            status: status !== undefined ? status : false, // Default to false (draft)
+            isPublic: publicStatus, // Lưu vào isPublic
+            status: publicStatus, // Backward compatibility
             difficulty: difficulty || 'medium', // Default to medium
             created_by: req.user.id, // từ token
         });
@@ -43,16 +47,16 @@ export const createDeck = async (req, res) => {
 
 // =============================
 // 🔹 GET ALL DECKS (Public / Student allowed)
-// Student chỉ thấy decks có status = 'public'
+// Student chỉ thấy decks có isPublic = true
 // Teacher/Admin thấy tất cả decks
 // =============================
 export const getAllDecks = async (req, res) => {
     try {
         const userRole = req.user?.role;
         
-        // Student chỉ thấy public decks (status = true), Teacher/Admin thấy tất cả
+        // Student chỉ thấy public decks (isPublic = true), Teacher/Admin thấy tất cả
         const query = (userRole === 'Student') 
-            ? { status: true } 
+            ? { isPublic: true } 
             : {};
 
         const decks = await FlashcardDeck.find(query)
@@ -77,8 +81,8 @@ export const getDeckById = async (req, res) => {
 
         const userRole = req.user?.role;
         
-        // Student chỉ có thể xem public decks (status = true)
-        if (userRole === 'Student' && deck.status !== true) {
+        // Student chỉ có thể xem public decks (isPublic = true)
+        if (userRole === 'Student' && deck.isPublic !== true) {
             return res.status(403).json({ message: 'Access denied. This deck is not public' });
         }
 
@@ -94,7 +98,7 @@ export const getDeckById = async (req, res) => {
 export const updateDeck = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, description, status, difficulty } = req.body;
+        const { title, description, status, isPublic, difficulty } = req.body;
         const deck = await FlashcardDeck.findById(id);
         if (!deck) return res.status(404).json({ message: 'Deck not found' });
 
@@ -103,9 +107,12 @@ export const updateDeck = async (req, res) => {
             return res.status(403).json({ message: 'You do not have permission to edit this deck' });
         }
 
-        // Validate status if provided (must be boolean)
-        if (status !== undefined && typeof status !== 'boolean') {
-            return res.status(400).json({ message: 'Status must be a boolean (true = public, false = draft)' });
+        // Xử lý isPublic (ưu tiên) hoặc status (backward compatibility)
+        const publicStatus = isPublic !== undefined ? isPublic : status;
+
+        // Validate isPublic/status if provided (must be boolean)
+        if (publicStatus !== undefined && typeof publicStatus !== 'boolean') {
+            return res.status(400).json({ message: 'isPublic must be a boolean (true = public, false = private)' });
         }
 
         // Validate difficulty if provided
@@ -116,10 +123,16 @@ export const updateDeck = async (req, res) => {
         // Update fields if provided
         if (title !== undefined) deck.title = title;
         if (description !== undefined) deck.description = description;
-        if (status !== undefined) deck.status = status;
+        if (publicStatus !== undefined) {
+            deck.isPublic = publicStatus;
+            deck.status = publicStatus; // Backward compatibility
+        }
         if (difficulty !== undefined) deck.difficulty = difficulty;
 
         await deck.save();
+
+        // Populate created_by để trả về đầy đủ thông tin
+        await deck.populate('created_by', 'name email role');
 
         res.json({ message: 'Deck updated successfully', deck });
     } catch (error) {
