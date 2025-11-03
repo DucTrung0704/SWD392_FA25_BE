@@ -5,7 +5,7 @@ import FlashcardDeck from '../models/deck.model.js';
 // =============================
 export const createDeck = async (req, res) => {
     try {
-        const { title, description } = req.body;
+        const { title, description, status, difficulty } = req.body;
 
         // Validate required fields
         if (!title) {
@@ -17,9 +17,21 @@ export const createDeck = async (req, res) => {
             return res.status(401).json({ message: 'User authentication required' });
         }
 
+        // Validate status if provided
+        if (status && !['public', 'draft'].includes(status)) {
+            return res.status(400).json({ message: 'Status must be either "public" or "draft"' });
+        }
+
+        // Validate difficulty if provided
+        if (difficulty && !['easy', 'medium', 'hard'].includes(difficulty)) {
+            return res.status(400).json({ message: 'Difficulty must be either "easy", "medium", or "hard"' });
+        }
+
         const newDeck = await FlashcardDeck.create({
             title,
             description,
+            status: status || 'draft', // Default to draft
+            difficulty: difficulty || 'medium', // Default to medium
             created_by: req.user.id, // từ token
         });
 
@@ -31,10 +43,19 @@ export const createDeck = async (req, res) => {
 
 // =============================
 // 🔹 GET ALL DECKS (Public / Student allowed)
+// Student chỉ thấy decks có status = 'public'
+// Teacher/Admin thấy tất cả decks
 // =============================
 export const getAllDecks = async (req, res) => {
     try {
-        const decks = await FlashcardDeck.find()
+        const userRole = req.user?.role;
+        
+        // Student chỉ thấy public decks, Teacher/Admin thấy tất cả
+        const query = (userRole === 'Student') 
+            ? { status: 'public' } 
+            : {};
+
+        const decks = await FlashcardDeck.find(query)
             .populate('created_by', 'name email role')
             .sort({ created_at: -1 });
 
@@ -46,11 +67,21 @@ export const getAllDecks = async (req, res) => {
 
 // =============================
 // 🔹 GET DECK BY ID
+// Student chỉ có thể xem public decks
+// Teacher/Admin có thể xem tất cả
 // =============================
 export const getDeckById = async (req, res) => {
     try {
         const deck = await FlashcardDeck.findById(req.params.id).populate('created_by', 'name email');
         if (!deck) return res.status(404).json({ message: 'Deck not found' });
+
+        const userRole = req.user?.role;
+        
+        // Student chỉ có thể xem public decks
+        if (userRole === 'Student' && deck.status !== 'public') {
+            return res.status(403).json({ message: 'Access denied. This deck is not public' });
+        }
+
         res.json(deck);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -63,6 +94,7 @@ export const getDeckById = async (req, res) => {
 export const updateDeck = async (req, res) => {
     try {
         const { id } = req.params;
+        const { title, description, status, difficulty } = req.body;
         const deck = await FlashcardDeck.findById(id);
         if (!deck) return res.status(404).json({ message: 'Deck not found' });
 
@@ -71,8 +103,22 @@ export const updateDeck = async (req, res) => {
             return res.status(403).json({ message: 'You do not have permission to edit this deck' });
         }
 
-        deck.title = req.body.title || deck.title;
-        deck.description = req.body.description || deck.description;
+        // Validate status if provided
+        if (status && !['public', 'draft'].includes(status)) {
+            return res.status(400).json({ message: 'Status must be either "public" or "draft"' });
+        }
+
+        // Validate difficulty if provided
+        if (difficulty && !['easy', 'medium', 'hard'].includes(difficulty)) {
+            return res.status(400).json({ message: 'Difficulty must be either "easy", "medium", or "hard"' });
+        }
+
+        // Update fields if provided
+        if (title !== undefined) deck.title = title;
+        if (description !== undefined) deck.description = description;
+        if (status !== undefined) deck.status = status;
+        if (difficulty !== undefined) deck.difficulty = difficulty;
+
         await deck.save();
 
         res.json({ message: 'Deck updated successfully', deck });

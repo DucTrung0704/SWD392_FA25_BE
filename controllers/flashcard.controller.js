@@ -1,27 +1,30 @@
 import Flashcard from '../models/flashcard.model.js';
-import path from 'path';
+import FlashcardDeck from '../models/deck.model.js';
 
 // ==================================================
 // 🔹 CREATE FLASHCARD (Teacher only)
 // ==================================================
 export const createFlashcard = async (req, res) => {
     try {
-        const { deck_id, tag, note } = req.body;
+        const { deck_id, question, answer, tag, note } = req.body;
 
-        // Kiểm tra ảnh hợp lệ
-        if (!req.files || !req.files.question_image || !req.files.answer_image) {
-            return res.status(400).json({ message: 'Question and Answer images are required' });
+        // Validate required fields
+        if (!deck_id) {
+            return res.status(400).json({ message: 'Deck ID is required' });
         }
-
-        const questionPath = `${process.env.BASE_URL}/upload/flashcards/${req.files.question_image[0].filename}`;
-        const answerPath = `${process.env.BASE_URL}/upload/flashcards/${req.files.answer_image[0].filename}`;
+        if (!question) {
+            return res.status(400).json({ message: 'Question is required' });
+        }
+        if (!answer) {
+            return res.status(400).json({ message: 'Answer is required' });
+        }
 
         const card = await Flashcard.create({
             deck_id,
-            question_image: questionPath,
-            answer_image: answerPath,
-            tag,
-            note,
+            question,
+            answer,
+            tag: tag || '',
+            note: note || '',
         });
 
         res.status(201).json({ message: 'Flashcard created successfully', card });
@@ -44,10 +47,25 @@ export const getAllFlashcards = async (req, res) => {
 
 // ==================================================
 // 🔹 GET FLASHCARDS BY DECK (Student / Teacher)
+// Student chỉ có thể xem flashcards từ public decks
+// Teacher/Admin có thể xem tất cả
 // ==================================================
 export const getFlashcardsByDeck = async (req, res) => {
     try {
         const { deckId } = req.params;
+        const userRole = req.user?.role;
+
+        // Kiểm tra deck có tồn tại không và student chỉ có thể xem public decks
+        const deck = await FlashcardDeck.findById(deckId);
+        if (!deck) {
+            return res.status(404).json({ message: 'Deck not found' });
+        }
+
+        // Student chỉ có thể xem flashcards từ public decks
+        if (userRole === 'Student' && deck.status !== 'public') {
+            return res.status(403).json({ message: 'Access denied. This deck is not public' });
+        }
+
         const flashcards = await Flashcard.find({ deck_id: deckId }).sort({ created_at: -1 });
 
         if (!flashcards || flashcards.length === 0) {
@@ -83,20 +101,16 @@ export const getFlashcardById = async (req, res) => {
 export const updateFlashcard = async (req, res) => {
     try {
         const { id } = req.params;
-        const { tag, note } = req.body;
+        const { question, answer, tag, note } = req.body;
         const card = await Flashcard.findById(id);
         if (!card) return res.status(404).json({ message: 'Flashcard not found' });
 
-        // Cập nhật ảnh nếu có upload mới
-        if (req.files?.question_image) {
-            card.question_image = `${process.env.BASE_URL}/upload/flashcards/${req.files.question_image[0].filename}`;
-        }
-        if (req.files?.answer_image) {
-            card.answer_image = `${process.env.BASE_URL}/upload/flashcards/${req.files.answer_image[0].filename}`;
-        }
+        // Cập nhật các trường nếu có
+        if (question !== undefined) card.question = question;
+        if (answer !== undefined) card.answer = answer;
+        if (tag !== undefined) card.tag = tag;
+        if (note !== undefined) card.note = note;
 
-        card.tag = tag || card.tag;
-        card.note = note || card.note;
         await card.save();
 
         res.json({ message: 'Flashcard updated successfully', card });

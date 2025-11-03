@@ -14,7 +14,6 @@ import {
     requireTeacherOrAdmin,
     checkOwnership 
 } from '../middleware/auth.middleware.js';
-import upload from '../config/multer.js';
 
 const router = express.Router();
 
@@ -32,10 +31,6 @@ router.post(
     '/teacher/create',
     verifyToken,
     requireTeacherOrAdmin,
-    upload.fields([
-        { name: 'question_image', maxCount: 1 },
-        { name: 'answer_image', maxCount: 1 },
-    ]),
     createFlashcard
 );
 
@@ -44,10 +39,6 @@ router.put(
     verifyToken,
     requireTeacherOrAdmin,
     checkOwnership(),
-    upload.fields([
-        { name: 'question_image', maxCount: 1 },
-        { name: 'answer_image', maxCount: 1 },
-    ]),
     updateFlashcard
 );
 

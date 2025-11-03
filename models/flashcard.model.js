@@ -6,11 +6,11 @@ const flashcardSchema = new mongoose.Schema({
         ref: 'FlashcardDeck',
         required: true,
     },
-    question_image: {
+    question: {
         type: String, 
         required: true,
     },
-    answer_image: {
+    answer: {
         type: String, 
         required: true,
     },
