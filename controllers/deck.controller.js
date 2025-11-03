@@ -7,6 +7,16 @@ export const createDeck = async (req, res) => {
     try {
         const { title, description } = req.body;
 
+        // Validate required fields
+        if (!title) {
+            return res.status(400).json({ message: 'Title is required' });
+        }
+
+        // Validate user ID from token
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ message: 'User authentication required' });
+        }
+
         const newDeck = await FlashcardDeck.create({
             title,
             description,

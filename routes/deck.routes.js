@@ -31,11 +31,12 @@ router.get('/all/:id', verifyToken, getDeckById);
 // ==================================================
 // 👨‍🏫 TEACHER ROUTES (Teacher và Admin có thể truy cập)
 // ==================================================
+// IMPORTANT: Specific routes must come before parameterized routes
 router.post('/teacher/create', verifyToken, requireTeacherOrAdmin, createDeck);
 router.get('/teacher/my-decks', verifyToken, requireTeacherOrAdmin, getMyDecks);
-router.get('/teacher/:teacherId', verifyToken, requireTeacherOrAdmin, getDecksByTeacher);
 router.put('/teacher/update/:id', verifyToken, requireTeacherOrAdmin, checkOwnership(), updateDeck);
 router.delete('/teacher/delete/:id', verifyToken, requireTeacherOrAdmin, checkOwnership(), deleteDeck);
+router.get('/teacher/:teacherId', verifyToken, requireTeacherOrAdmin, getDecksByTeacher);
 
 // ==================================================
 // 👨‍💼 ADMIN ROUTES (Chỉ Admin)

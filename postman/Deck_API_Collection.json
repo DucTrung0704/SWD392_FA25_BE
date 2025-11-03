@@ -1,0 +1,379 @@
+{
+	"info": {
+		"_postman_id": "deck-api-collection",
+		"name": "Deck API Collection",
+		"description": "Complete collection for testing Deck API endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{authToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "Student Routes",
+			"item": [
+				{
+					"name": "Get All Decks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/deck/all",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"deck",
+								"all"
+							]
+						},
+						"description": "Get all flashcard decks. Available to all authenticated users (Students, Teachers, Admins)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Deck By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/deck/all/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"deck",
+								"all",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{deckId}}",
+									"description": "Deck MongoDB ObjectId"
+								}
+							]
+						},
+						"description": "Get a specific deck by its ID. Replace :id with actual deck ID."
+					},
+					"response": []
+				}
+			],
+			"description": "Routes accessible to Students (and all authenticated users)"
+		},
+		{
+			"name": "Teacher Routes",
+			"item": [
+				{
+					"name": "Create Deck",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Mathematics Basics\",\n    \"description\": \"A deck covering basic mathematical concepts\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/deck/teacher/create",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"deck",
+								"teacher",
+								"create"
+							]
+						},
+						"description": "Create a new flashcard deck. Requires Teacher or Admin role. The created_by field is automatically set from the JWT token."
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Decks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/deck/teacher/my-decks",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"deck",
+								"teacher",
+								"my-decks"
+							]
+						},
+						"description": "Get all decks created by the current authenticated teacher/admin."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Decks By Teacher ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/deck/teacher/:teacherId",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"deck",
+								"teacher",
+								":teacherId"
+							],
+							"variable": [
+								{
+									"key": "teacherId",
+									"value": "{{teacherId}}",
+									"description": "Teacher's MongoDB ObjectId"
+								}
+							]
+						},
+						"description": "Get all decks created by a specific teacher. Requires Teacher or Admin role."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Deck",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated Deck Title\",\n    \"description\": \"Updated description\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/deck/teacher/update/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"deck",
+								"teacher",
+								"update",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{deckId}}",
+									"description": "Deck MongoDB ObjectId"
+								}
+							]
+						},
+						"description": "Update a deck. Only the deck owner or Admin can update. Replace :id with the deck ID you want to update."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Deck",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/deck/teacher/delete/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"deck",
+								"teacher",
+								"delete",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{deckId}}",
+									"description": "Deck MongoDB ObjectId"
+								}
+							]
+						},
+						"description": "Delete a deck. Only the deck owner or Admin can delete. Replace :id with the deck ID you want to delete."
+					},
+					"response": []
+				}
+			],
+			"description": "Routes accessible to Teachers and Admins"
+		},
+		{
+			"name": "Admin Routes",
+			"item": [
+				{
+					"name": "Admin - Get All Decks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/deck/admin/all",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"deck",
+								"admin",
+								"all"
+							]
+						},
+						"description": "Get all decks. Admin only endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Admin - Delete Any Deck",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3000/api/deck/admin/delete/:id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"deck",
+								"admin",
+								"delete",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{deckId}}",
+									"description": "Deck MongoDB ObjectId"
+								}
+							]
+						},
+						"description": "Delete any deck. Admin only - can delete decks created by any user."
+					},
+					"response": []
+				}
+			],
+			"description": "Routes accessible only to Admins"
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string",
+			"description": "JWT token obtained from login endpoint"
+		},
+		{
+			"key": "deckId",
+			"value": "",
+			"type": "string",
+			"description": "MongoDB ObjectId of a deck"
+		},
+		{
+			"key": "teacherId",
+			"value": "",
+			"type": "string",
+			"description": "MongoDB ObjectId of a teacher"
+		}
+	]
+}
