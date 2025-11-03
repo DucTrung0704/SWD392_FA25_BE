@@ -17,9 +17,9 @@ export const createDeck = async (req, res) => {
             return res.status(401).json({ message: 'User authentication required' });
         }
 
-        // Validate status if provided
-        if (status && !['public', 'draft'].includes(status)) {
-            return res.status(400).json({ message: 'Status must be either "public" or "draft"' });
+        // Validate status if provided (must be boolean)
+        if (status !== undefined && typeof status !== 'boolean') {
+            return res.status(400).json({ message: 'Status must be a boolean (true = public, false = draft)' });
         }
 
         // Validate difficulty if provided
@@ -30,7 +30,7 @@ export const createDeck = async (req, res) => {
         const newDeck = await FlashcardDeck.create({
             title,
             description,
-            status: status || 'draft', // Default to draft
+            status: status !== undefined ? status : false, // Default to false (draft)
             difficulty: difficulty || 'medium', // Default to medium
             created_by: req.user.id, // từ token
         });
@@ -50,9 +50,9 @@ export const getAllDecks = async (req, res) => {
     try {
         const userRole = req.user?.role;
         
-        // Student chỉ thấy public decks, Teacher/Admin thấy tất cả
+        // Student chỉ thấy public decks (status = true), Teacher/Admin thấy tất cả
         const query = (userRole === 'Student') 
-            ? { status: 'public' } 
+            ? { status: true } 
             : {};
 
         const decks = await FlashcardDeck.find(query)
@@ -77,8 +77,8 @@ export const getDeckById = async (req, res) => {
 
         const userRole = req.user?.role;
         
-        // Student chỉ có thể xem public decks
-        if (userRole === 'Student' && deck.status !== 'public') {
+        // Student chỉ có thể xem public decks (status = true)
+        if (userRole === 'Student' && deck.status !== true) {
             return res.status(403).json({ message: 'Access denied. This deck is not public' });
         }
 
@@ -103,9 +103,9 @@ export const updateDeck = async (req, res) => {
             return res.status(403).json({ message: 'You do not have permission to edit this deck' });
         }
 
-        // Validate status if provided
-        if (status && !['public', 'draft'].includes(status)) {
-            return res.status(400).json({ message: 'Status must be either "public" or "draft"' });
+        // Validate status if provided (must be boolean)
+        if (status !== undefined && typeof status !== 'boolean') {
+            return res.status(400).json({ message: 'Status must be a boolean (true = public, false = draft)' });
         }
 
         // Validate difficulty if provided

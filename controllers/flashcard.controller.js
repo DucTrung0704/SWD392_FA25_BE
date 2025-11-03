@@ -61,8 +61,8 @@ export const getFlashcardsByDeck = async (req, res) => {
             return res.status(404).json({ message: 'Deck not found' });
         }
 
-        // Student chỉ có thể xem flashcards từ public decks
-        if (userRole === 'Student' && deck.status !== 'public') {
+        // Student chỉ có thể xem flashcards từ public decks (status = true)
+        if (userRole === 'Student' && deck.status !== true) {
             return res.status(403).json({ message: 'Access denied. This deck is not public' });
         }
 
