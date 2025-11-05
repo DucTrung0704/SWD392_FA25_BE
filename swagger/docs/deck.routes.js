@@ -72,8 +72,6 @@
  *             type: object
  *             required:
  *               - title
- *               - description
- *               - subject
  *             properties:
  *               title:
  *                 type: string
@@ -81,18 +79,15 @@
  *               description:
  *                 type: string
  *                 description: Deck description
- *               subject:
- *                 type: string
- *                 description: Subject/category
+ *               isPublic:
+ *                 type: boolean
+ *                 default: false
+ *                 description: Whether deck is public (true = public, false = private)
  *               difficulty:
  *                 type: string
  *                 enum: [easy, medium, hard]
- *                 default: easy
+ *                 default: medium
  *                 description: Difficulty level
- *               isPublic:
- *                 type: boolean
- *                 default: true
- *                 description: Whether deck is public
  *     responses:
  *       201:
  *         description: Deck created successfully
@@ -141,16 +136,13 @@
  *               description:
  *                 type: string
  *                 description: Deck description
- *               subject:
- *                 type: string
- *                 description: Subject/category
+ *               isPublic:
+ *                 type: boolean
+ *                 description: Whether deck is public (true = public, false = private)
  *               difficulty:
  *                 type: string
  *                 enum: [easy, medium, hard]
  *                 description: Difficulty level
- *               isPublic:
- *                 type: boolean
- *                 description: Whether deck is public
  *     responses:
  *       200:
  *         description: Deck updated successfully

@@ -73,6 +73,8 @@ const verifyToken = (req, res, next) => {
 import userRoutes from './routes/user.routes.js';
 import flashcardDeckRoutes from './routes/deck.routes.js';
 import flashcardRoutes from './routes/flashcard.routes.js';
+import examRoutes from './routes/exam.routes.js';
+import submissionRoutes from './routes/submission.routes.js';
 
 // ==================================================
 // ✅ 6️⃣  Gắn routes vào app
@@ -80,6 +82,8 @@ import flashcardRoutes from './routes/flashcard.routes.js';
 app.use('/api/user', userRoutes);
 app.use('/api/deck', flashcardDeckRoutes);
 app.use('/api/flashcard', flashcardRoutes);
+app.use('/api/exam', examRoutes);
+app.use('/api/submission', submissionRoutes);
 
 // ==================================================
 // ✅ 8️⃣  Swagger Documentation

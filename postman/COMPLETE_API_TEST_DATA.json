@@ -1,0 +1,259 @@
+{
+  "auth": {
+    "note": "Cần JWT token từ login endpoint. Set token trong Postman collection variables: authToken",
+    "studentToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "teacherToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "adminToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  },
+
+  "flashcard": {
+    "createSimple": {
+      "note": "Tạo flashcard đơn giản (giống Quizlet) - chỉ cần question và answer",
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "What is 2 + 2?",
+      "answer": "4",
+      "tag": "algebra",
+      "status": "easy"
+    },
+    "createWithOptions": {
+      "note": "Tạo flashcard với options (tùy chọn)",
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "What is the area of a circle with radius 5?",
+      "answer": "25π",
+      "options": {
+        "A": "20π",
+        "B": "25π",
+        "C": "30π",
+        "D": "35π"
+      },
+      "correctOption": "B",
+      "tag": "geometry",
+      "status": "medium"
+    },
+    "updateSimple": {
+      "question": "What is 3 + 3?",
+      "answer": "6",
+      "tag": "algebra"
+    },
+    "updateWithOptions": {
+      "question": "What is the area of a circle with radius 6?",
+      "answer": "36π",
+      "options": {
+        "A": "30π",
+        "B": "36π",
+        "C": "42π",
+        "D": "48π"
+      },
+      "correctOption": "B"
+    }
+  },
+
+  "deck": {
+    "create": {
+      "title": "Mathematics Basics",
+      "description": "Basic mathematics concepts",
+      "isPublic": true,
+      "difficulty": "easy"
+    },
+    "createPrivate": {
+      "title": "Advanced Algebra",
+      "description": "Advanced algebra topics",
+      "isPublic": false,
+      "difficulty": "hard"
+    },
+    "update": {
+      "title": "Updated Mathematics Basics",
+      "description": "Updated description",
+      "isPublic": true,
+      "difficulty": "medium"
+    }
+  },
+
+  "exam": {
+    "create": {
+      "title": "Mathematics Final Exam",
+      "description": "Final exam covering all topics",
+      "flashcards": [
+        "65a1b2c3d4e5f6g7h8i9j0k2",
+        "65a1b2c3d4e5f6g7h8i9j0k3",
+        "65a1b2c3d4e5f6g7h8i9j0k4"
+      ],
+      "time_limit": 90,
+      "isPublic": true
+    },
+    "createMinimal": {
+      "title": "Quick Test",
+      "description": "A quick 30-minute test",
+      "flashcards": ["65a1b2c3d4e5f6g7h8i9j0k2"],
+      "time_limit": 30,
+      "isPublic": true
+    },
+    "addFlashcards": {
+      "flashcard_ids": [
+        "65a1b2c3d4e5f6g7h8i9j0k5",
+        "65a1b2c3d4e5f6g7h8i9j0k6"
+      ]
+    },
+    "removeFlashcards": {
+      "flashcard_ids": ["65a1b2c3d4e5f6g7h8i9j0k5"]
+    }
+  },
+
+  "submission": {
+    "startExam": {
+      "note": "Không cần body - chỉ cần examId trong URL"
+    },
+    "submitAnswer": {
+      "flashcard_id": "65a1b2c3d4e5f6g7h8i9j0k2",
+      "selected_option": "B"
+    },
+    "finishExam": {
+      "note": "Không cần body - hệ thống tự động chấm điểm"
+    }
+  },
+
+  "sampleResponses": {
+    "flashcardCreateSuccess": {
+      "message": "Flashcard created successfully",
+      "card": {
+        "_id": "65a1b2c3d4e5f6g7h8i9j0k2",
+        "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+        "question": "What is 2 + 2?",
+        "answer": "4",
+        "tag": "algebra",
+        "status": "easy",
+        "created_at": "2024-01-15T10:30:00.000Z"
+      }
+    },
+    "examStartSuccess": {
+      "message": "Exam started successfully",
+      "submission": {
+        "_id": "65a1b2c3d4e5f6g7h8i9j0k10",
+        "exam_id": "65a1b2c3d4e5f6g7h8i9j0k9",
+        "student_id": "65a1b2c3d4e5f6g7h8i9j0k11",
+        "status": "in_progress",
+        "started_at": "2024-01-15T10:30:00.000Z"
+      },
+      "exam": {
+        "_id": "65a1b2c3d4e5f6g7h8i9j0k9",
+        "title": "Mathematics Final Exam",
+        "description": "Final exam covering all topics",
+        "time_limit": 90,
+        "total_questions": 10,
+        "flashcards": [
+          {
+            "_id": "65a1b2c3d4e5f6g7h8i9j0k2",
+            "question": "What is 2 + 2?",
+            "tag": "algebra",
+            "status": "easy",
+            "options": {
+              "A": "3",
+              "B": "4",
+              "C": "5",
+              "D": "6"
+            }
+          }
+        ]
+      }
+    },
+    "examFinishSuccess": {
+      "message": "Exam submitted and graded successfully",
+      "submission": {
+        "_id": "65a1b2c3d4e5f6g7h8i9j0k10",
+        "score": 80.00,
+        "correct_answers": 8,
+        "total_questions": 10,
+        "status": "submitted"
+      },
+      "grading_result": {
+        "total_questions": 10,
+        "answered": 10,
+        "unanswered": 0,
+        "correct_answers": 8,
+        "incorrect_answers": 2,
+        "score": 80.00,
+        "percentage": "80%",
+        "time_spent": 45,
+        "time_limit": 90
+      },
+      "detailed_results": [
+        {
+          "flashcard_id": "65a1b2c3d4e5f6g7h8i9j0k2",
+          "question": "What is 2 + 2?",
+          "options": {
+            "A": "3",
+            "B": "4",
+            "C": "5",
+            "D": "6"
+          },
+          "selected_option": "B",
+          "correct_option": "B",
+          "is_correct": true,
+          "correct_answer_text": "4",
+          "selected_answer_text": "4"
+        }
+      ]
+    }
+  },
+
+  "testWorkflow": {
+    "step1_createDeck": {
+      "method": "POST",
+      "endpoint": "/api/deck/teacher/create",
+      "body": {
+        "title": "Math Basics",
+        "description": "Basic math concepts",
+        "isPublic": true,
+        "difficulty": "easy"
+      },
+      "note": "Tạo deck trước"
+    },
+    "step2_createFlashcards": {
+      "method": "POST",
+      "endpoint": "/api/flashcard/teacher/create",
+      "body": {
+        "deck_id": "{{deckId}}",
+        "question": "What is 2 + 2?",
+        "answer": "4",
+        "tag": "algebra",
+        "status": "easy"
+      },
+      "note": "Tạo ít nhất 4 flashcards để có đủ options khi generate"
+    },
+    "step3_createExam": {
+      "method": "POST",
+      "endpoint": "/api/exam/teacher/create",
+      "body": {
+        "title": "Test Exam",
+        "description": "Test exam",
+        "flashcards": ["{{flashcardId1}}", "{{flashcardId2}}", "{{flashcardId3}}", "{{flashcardId4}}"],
+        "time_limit": 60,
+        "isPublic": true
+      },
+      "note": "Tạo exam với các flashcards"
+    },
+    "step4_studentStartExam": {
+      "method": "POST",
+      "endpoint": "/api/submission/student/start/{{examId}}",
+      "auth": "studentToken",
+      "note": "Student bắt đầu làm bài - hệ thống tự động generate 4 options"
+    },
+    "step5_studentSubmitAnswer": {
+      "method": "POST",
+      "endpoint": "/api/submission/student/submit-answer/{{submissionId}}",
+      "body": {
+        "flashcard_id": "{{flashcardId1}}",
+        "selected_option": "B"
+      },
+      "auth": "studentToken",
+      "note": "Nộp câu trả lời"
+    },
+    "step6_studentFinishExam": {
+      "method": "POST",
+      "endpoint": "/api/submission/student/finish/{{submissionId}}",
+      "auth": "studentToken",
+      "note": "Nộp bài - hệ thống tự động chấm điểm"
+    }
+  }
+}
+

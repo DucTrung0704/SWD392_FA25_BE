@@ -2,7 +2,6 @@ import express from 'express';
 import {
     createFlashcard,
     getAllFlashcards,
-    getFlashcardById,
     updateFlashcard,
     deleteFlashcard,
     getFlashcardsByDeck,
@@ -20,13 +19,13 @@ const router = express.Router();
 // ==================================================
 // 👩‍🎓 STUDENT ROUTES (Student có thể xem và học)
 // ==================================================
-router.get('/student/all', verifyToken, getAllFlashcards);
-router.get('/student/:id', verifyToken, getFlashcardById);
 router.get('/student/deck/:deckId', verifyToken, getFlashcardsByDeck);
 
 // ==================================================
 // 👨‍🏫 TEACHER ROUTES (Teacher và Admin có thể truy cập)
 // ==================================================
+router.get('/teacher/all', verifyToken, requireTeacherOrAdmin, getAllFlashcards);
+
 router.post(
     '/teacher/create',
     verifyToken,

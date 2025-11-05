@@ -1,0 +1,835 @@
+{
+	"info": {
+		"_postman_id": "mathflash-complete-api",
+		"name": "MathFlash Complete API Collection",
+		"description": "Complete API collection for MathFlash application - Flashcard, Deck, Exam, and Submission endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{authToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "Deck API",
+			"item": [
+				{
+					"name": "Student - Get All Decks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/deck/all",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "deck", "all"]
+						},
+						"description": "Get all public decks (Student chỉ thấy public decks)"
+					}
+				},
+				{
+					"name": "Student - Get Deck By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/deck/all/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "deck", "all", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{deckId}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Teacher - Create Deck",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Mathematics Basics\",\n    \"description\": \"Basic mathematics concepts\",\n    \"isPublic\": true,\n    \"difficulty\": \"easy\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/deck/teacher/create",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "deck", "teacher", "create"]
+						}
+					}
+				},
+				{
+					"name": "Teacher - Get My Decks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/deck/teacher/my-decks",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "deck", "teacher", "my-decks"]
+						}
+					}
+				},
+				{
+					"name": "Teacher - Update Deck",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated Title\",\n    \"description\": \"Updated description\",\n    \"isPublic\": true,\n    \"difficulty\": \"medium\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/deck/teacher/update/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "deck", "teacher", "update", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{deckId}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Teacher - Delete Deck",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/deck/teacher/delete/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "deck", "teacher", "delete", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{deckId}}"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Flashcard API",
+			"item": [
+				{
+					"name": "Student - Get All Flashcards",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/flashcard/student/all",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "flashcard", "student", "all"]
+						}
+					}
+				},
+				{
+					"name": "Student - Get Flashcard By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/flashcard/student/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "flashcard", "student", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{flashcardId}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Student - Get Flashcards By Deck",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/flashcard/student/deck/:deckId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "flashcard", "student", "deck", ":deckId"],
+							"variable": [
+								{
+									"key": "deckId",
+									"value": "{{deckId}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Teacher - Create Flashcard (Simple)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"deck_id\": \"{{deckId}}\",\n    \"question\": \"What is 2 + 2?\",\n    \"answer\": \"4\",\n    \"tag\": \"algebra\",\n    \"status\": \"easy\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/flashcard/teacher/create",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "flashcard", "teacher", "create"]
+						},
+						"description": "Tạo flashcard đơn giản (giống Quizlet) - chỉ cần question và answer. Options sẽ tự động generate khi làm bài."
+					}
+				},
+				{
+					"name": "Teacher - Create Flashcard (With Options)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"deck_id\": \"{{deckId}}\",\n    \"question\": \"What is the area of a circle with radius 5?\",\n    \"answer\": \"25π\",\n    \"options\": {\n        \"A\": \"20π\",\n        \"B\": \"25π\",\n        \"C\": \"30π\",\n        \"D\": \"35π\"\n    },\n    \"correctOption\": \"B\",\n    \"tag\": \"geometry\",\n    \"status\": \"medium\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/flashcard/teacher/create",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "flashcard", "teacher", "create"]
+						},
+						"description": "Tạo flashcard với options (tùy chọn)"
+					}
+				},
+				{
+					"name": "Teacher - Update Flashcard",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"question\": \"Updated question\",\n    \"answer\": \"Updated answer\",\n    \"tag\": \"algebra\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/flashcard/teacher/update/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "flashcard", "teacher", "update", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{flashcardId}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Teacher - Delete Flashcard",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/flashcard/teacher/delete/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "flashcard", "teacher", "delete", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{flashcardId}}"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Exam API",
+			"item": [
+				{
+					"name": "Student - Get All Exams",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/exam/all",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "exam", "all"]
+						},
+						"description": "Get all public exams (Student chỉ thấy public exams)"
+					}
+				},
+				{
+					"name": "Student - Get Exam By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/exam/all/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "exam", "all", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{examId}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Teacher - Create Exam",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Mathematics Final Exam\",\n    \"description\": \"Final exam covering all topics\",\n    \"flashcards\": [\"{{flashcardId1}}\", \"{{flashcardId2}}\", \"{{flashcardId3}}\"],\n    \"time_limit\": 90,\n    \"isPublic\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/exam/teacher/create",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "exam", "teacher", "create"]
+						}
+					}
+				},
+				{
+					"name": "Teacher - Get My Exams",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/exam/teacher/my-exams",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "exam", "teacher", "my-exams"]
+						}
+					}
+				},
+				{
+					"name": "Teacher - Add Flashcards to Exam",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"flashcard_ids\": [\"{{flashcardId4}}\", \"{{flashcardId5}}\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/exam/teacher/:id/add-flashcards",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "exam", "teacher", ":id", "add-flashcards"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{examId}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Teacher - Remove Flashcards from Exam",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"flashcard_ids\": [\"{{flashcardId4}}\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/exam/teacher/:id/remove-flashcards",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "exam", "teacher", ":id", "remove-flashcards"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{examId}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Teacher - Update Exam",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated Exam Title\",\n    \"description\": \"Updated description\",\n    \"time_limit\": 120,\n    \"isPublic\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/exam/teacher/update/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "exam", "teacher", "update", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{examId}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Teacher - Delete Exam",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/exam/teacher/delete/:id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "exam", "teacher", "delete", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{examId}}"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Submission API",
+			"item": [
+				{
+					"name": "Student - Start Exam",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/submission/student/start/:examId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "submission", "student", "start", ":examId"],
+							"variable": [
+								{
+									"key": "examId",
+									"value": "{{examId}}"
+								}
+							]
+						},
+						"description": "Bắt đầu làm bài. Hệ thống tự động generate 4 options cho mỗi flashcard."
+					}
+				},
+				{
+					"name": "Student - Submit Answer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"flashcard_id\": \"{{flashcardId}}\",\n    \"selected_option\": \"B\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/submission/student/submit-answer/:submissionId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "submission", "student", "submit-answer", ":submissionId"],
+							"variable": [
+								{
+									"key": "submissionId",
+									"value": "{{submissionId}}"
+								}
+							]
+						},
+						"description": "Nộp câu trả lời. selected_option phải là A, B, C, hoặc D."
+					}
+				},
+				{
+					"name": "Student - Finish Exam",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/submission/student/finish/:submissionId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "submission", "student", "finish", ":submissionId"],
+							"variable": [
+								{
+									"key": "submissionId",
+									"value": "{{submissionId}}"
+								}
+							]
+						},
+						"description": "Nộp bài và tự động chấm điểm. Hệ thống sẽ tự động tính điểm và trả về kết quả chi tiết."
+					}
+				},
+				{
+					"name": "Student - Get Submission",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/submission/student/:submissionId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "submission", "student", ":submissionId"],
+							"variable": [
+								{
+									"key": "submissionId",
+									"value": "{{submissionId}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Student - Get My Submissions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/submission/student/my-submissions?examId={{examId}}&status=submitted",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "submission", "student", "my-submissions"],
+							"query": [
+								{
+									"key": "examId",
+									"value": "{{examId}}",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "submitted",
+									"disabled": true
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Student - Get Submission By Exam",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/submission/student/exam/:examId",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "submission", "student", "exam", ":examId"],
+							"variable": [
+								{
+									"key": "examId",
+									"value": "{{examId}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Teacher - Get All Submissions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/submission/teacher/all?examId={{examId}}&status=submitted&sortBy=score&sortOrder=desc",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "submission", "teacher", "all"],
+							"query": [
+								{
+									"key": "examId",
+									"value": "{{examId}}",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "submitted",
+									"disabled": true
+								},
+								{
+									"key": "sortBy",
+									"value": "score",
+									"disabled": true
+								},
+								{
+									"key": "sortOrder",
+									"value": "desc",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Teacher/Admin có thể xem tất cả submissions với filter options"
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string",
+			"description": "JWT token obtained from login endpoint"
+		},
+		{
+			"key": "deckId",
+			"value": "",
+			"type": "string",
+			"description": "MongoDB ObjectId of a deck"
+		},
+		{
+			"key": "flashcardId",
+			"value": "",
+			"type": "string",
+			"description": "MongoDB ObjectId of a flashcard"
+		},
+		{
+			"key": "flashcardId1",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "flashcardId2",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "flashcardId3",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "flashcardId4",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "examId",
+			"value": "",
+			"type": "string",
+			"description": "MongoDB ObjectId of an exam"
+		},
+		{
+			"key": "submissionId",
+			"value": "",
+			"type": "string",
+			"description": "MongoDB ObjectId of a submission"
+		}
+	]
+}

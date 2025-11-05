@@ -1,63 +1,5 @@
 /**
  * @swagger
- * /api/flashcard/student/all:
- *   get:
- *     summary: Get all flashcards (Student access)
- *     tags: [Flashcards]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of all flashcards
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 flashcards:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Flashcard'
- *       401:
- *         description: Unauthorized
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-
-/**
- * @swagger
- * /api/flashcard/student/{id}:
- *   get:
- *     summary: Get flashcard by ID (Student access)
- *     tags: [Flashcards]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Flashcard ID
- *     responses:
- *       200:
- *         description: Flashcard details
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Flashcard'
- *       404:
- *         description: Flashcard not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-
-/**
- * @swagger
  * /api/flashcard/student/deck/{deckId}:
  *   get:
  *     summary: Get flashcards by deck ID (Student access)
@@ -93,45 +35,93 @@
 
 /**
  * @swagger
+ * /api/flashcard/teacher/all:
+ *   get:
+ *     summary: Get all flashcards (Teacher/Admin access)
+ *     description: Teacher và Admin có thể xem tất cả flashcards trong hệ thống để quản lý và CRUD
+ *     tags: [Flashcards]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all flashcards
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 count:
+ *                   type: number
+ *                   description: Total number of flashcards
+ *                 flashcards:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Flashcard'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - Teacher/Admin role required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
  * /api/flashcard/teacher/create:
  *   post:
  *     summary: Create a new flashcard (Teacher/Admin only)
+ *     description: Create flashcard đơn giản (giống Quizlet) - chỉ cần question và answer. Options sẽ tự động generate khi làm bài.
  *     tags: [Flashcards]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
- *         multipart/form-data:
+ *         application/json:
  *           schema:
  *             type: object
  *             required:
- *               - front
- *               - back
- *               - deckId
+ *               - deck_id
+ *               - question
+ *               - answer
+ *               - tag
  *             properties:
- *               front:
- *                 type: string
- *                 description: Front side content
- *               back:
- *                 type: string
- *                 description: Back side content
- *               deckId:
+ *               deck_id:
  *                 type: string
  *                 description: Parent deck ID
- *               difficulty:
+ *               question:
+ *                 type: string
+ *                 description: Question text
+ *               answer:
+ *                 type: string
+ *                 description: Answer text
+ *               tag:
+ *                 type: string
+ *                 enum: [geometry, algebra, probability]
+ *                 description: Flashcard category tag
+ *               status:
  *                 type: string
  *                 enum: [easy, medium, hard]
- *                 default: easy
+ *                 default: medium
  *                 description: Difficulty level
- *               question_image:
+ *               options:
+ *                 type: object
+ *                 description: Optional - 4 multiple choice options
+ *                 properties:
+ *                   A: { type: string }
+ *                   B: { type: string }
+ *                   C: { type: string }
+ *                   D: { type: string }
+ *               correctOption:
  *                 type: string
- *                 format: binary
- *                 description: Question image file
- *               answer_image:
- *                 type: string
- *                 format: binary
- *                 description: Answer image file
+ *                 enum: [A, B, C, D]
+ *                 description: Optional - Correct option (required if options provided)
  *     responses:
  *       201:
  *         description: Flashcard created successfully
@@ -142,7 +132,7 @@
  *               properties:
  *                 message:
  *                   type: string
- *                 flashcard:
+ *                 card:
  *                   $ref: '#/components/schemas/Flashcard'
  *       403:
  *         description: Forbidden - Teacher/Admin role required
@@ -170,31 +160,36 @@
  *     requestBody:
  *       required: true
  *       content:
- *         multipart/form-data:
+ *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               front:
+ *               question:
  *                 type: string
- *                 description: Front side content
- *               back:
+ *                 description: Question text
+ *               answer:
  *                 type: string
- *                 description: Back side content
- *               deckId:
+ *                 description: Answer text
+ *               tag:
  *                 type: string
- *                 description: Parent deck ID
- *               difficulty:
+ *                 enum: [geometry, algebra, probability]
+ *                 description: Flashcard category tag
+ *               status:
  *                 type: string
  *                 enum: [easy, medium, hard]
  *                 description: Difficulty level
- *               question_image:
+ *               options:
+ *                 type: object
+ *                 description: Optional - 4 multiple choice options
+ *                 properties:
+ *                   A: { type: string }
+ *                   B: { type: string }
+ *                   C: { type: string }
+ *                   D: { type: string }
+ *               correctOption:
  *                 type: string
- *                 format: binary
- *                 description: Question image file
- *               answer_image:
- *                 type: string
- *                 format: binary
- *                 description: Answer image file
+ *                 enum: [A, B, C, D]
+ *                 description: Optional - Correct option (required if options provided)
  *     responses:
  *       200:
  *         description: Flashcard updated successfully
@@ -205,7 +200,7 @@
  *               properties:
  *                 message:
  *                   type: string
- *                 flashcard:
+ *                 card:
  *                   $ref: '#/components/schemas/Flashcard'
  *       403:
  *         description: Forbidden - Teacher/Admin role required

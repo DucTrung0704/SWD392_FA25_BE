@@ -1,0 +1,398 @@
+{
+  "auth": {
+    "note": "Cần JWT token từ login endpoint với role Teacher hoặc Admin để tạo/update/delete flashcards",
+    "teacherToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "adminToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "studentToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  },
+
+  "createFlashcard": {
+    "valid": {
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "What is 2 + 2?",
+      "answer": "4",
+      "tag": "arithmetic",
+      "note": "Basic addition problem"
+    },
+    "validMinimal": {
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "What is the capital of France?",
+      "answer": "Paris"
+    },
+    "validLongContent": {
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "Explain the Pythagorean theorem and provide an example.",
+      "answer": "The Pythagorean theorem states that in a right triangle, the square of the hypotenuse (the side opposite the right angle) is equal to the sum of the squares of the other two sides. Formula: a² + b² = c². Example: In a right triangle with sides a=3 and b=4, the hypotenuse c = √(3² + 4²) = √(9 + 16) = √25 = 5.",
+      "tag": "geometry",
+      "note": "Important theorem for right triangles"
+    },
+    "validWithSpecialCharacters": {
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "Solve: 3x + 5 = 2x - 7. What is x?",
+      "answer": "x = -12",
+      "tag": "algebra",
+      "note": "Linear equation solving"
+    },
+    "validMathFormula": {
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "What is the derivative of f(x) = x²?",
+      "answer": "f'(x) = 2x",
+      "tag": "calculus",
+      "note": "Power rule for derivatives"
+    },
+    "invalidMissingDeckId": {
+      "question": "What is 2 + 2?",
+      "answer": "4"
+    },
+    "invalidMissingQuestion": {
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "answer": "4"
+    },
+    "invalidMissingAnswer": {
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "What is 2 + 2?"
+    },
+    "invalidEmptyQuestion": {
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "",
+      "answer": "4"
+    },
+    "invalidEmptyAnswer": {
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "What is 2 + 2?",
+      "answer": ""
+    },
+    "invalidDeckId": {
+      "deck_id": "invalid_id",
+      "question": "What is 2 + 2?",
+      "answer": "4"
+    }
+  },
+
+  "updateFlashcard": {
+    "updateAll": {
+      "question": "What is 3 + 3?",
+      "answer": "6",
+      "tag": "arithmetic-updated",
+      "note": "Updated note"
+    },
+    "updateQuestionOnly": {
+      "question": "What is 4 + 4?"
+    },
+    "updateAnswerOnly": {
+      "answer": "8"
+    },
+    "updateTagOnly": {
+      "tag": "basic-math"
+    },
+    "updateNoteOnly": {
+      "note": "This is an important question"
+    },
+    "updateQuestionAndAnswer": {
+      "question": "What is 5 + 5?",
+      "answer": "10"
+    },
+    "clearTagAndNote": {
+      "tag": "",
+      "note": ""
+    }
+  },
+
+  "sampleResponses": {
+    "createFlashcardSuccess": {
+      "message": "Flashcard created successfully",
+      "card": {
+        "_id": "65a1b2c3d4e5f6g7h8i9j0k2",
+        "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+        "question": "What is 2 + 2?",
+        "answer": "4",
+        "tag": "arithmetic",
+        "note": "Basic addition problem",
+        "created_at": "2024-01-15T10:30:00.000Z"
+      }
+    },
+    
+    "getAllFlashcardsSuccess": {
+      "count": 5,
+      "flashcards": [
+        {
+          "_id": "65a1b2c3d4e5f6g7h8i9j0k2",
+          "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+          "question": "What is 2 + 2?",
+          "answer": "4",
+          "tag": "arithmetic",
+          "note": "Basic addition problem",
+          "created_at": "2024-01-15T10:30:00.000Z"
+        },
+        {
+          "_id": "65a1b2c3d4e5f6g7h8i9j0k3",
+          "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+          "question": "What is 3 × 3?",
+          "answer": "9",
+          "tag": "multiplication",
+          "note": "",
+          "created_at": "2024-01-15T10:25:00.000Z"
+        }
+      ]
+    },
+
+    "getFlashcardsByDeckSuccess": {
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "count": 3,
+      "flashcards": [
+        {
+          "_id": "65a1b2c3d4e5f6g7h8i9j0k2",
+          "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+          "question": "What is 2 + 2?",
+          "answer": "4",
+          "tag": "arithmetic",
+          "note": "Basic addition problem",
+          "created_at": "2024-01-15T10:30:00.000Z"
+        },
+        {
+          "_id": "65a1b2c3d4e5f6g7h8i9j0k3",
+          "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+          "question": "What is 3 × 3?",
+          "answer": "9",
+          "tag": "multiplication",
+          "note": "",
+          "created_at": "2024-01-15T10:25:00.000Z"
+        }
+      ]
+    },
+
+    "getFlashcardByIdSuccess": {
+      "_id": "65a1b2c3d4e5f6g7h8i9j0k2",
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "What is 2 + 2?",
+      "answer": "4",
+      "tag": "arithmetic",
+      "note": "Basic addition problem",
+      "created_at": "2024-01-15T10:30:00.000Z"
+    },
+
+    "updateFlashcardSuccess": {
+      "message": "Flashcard updated successfully",
+      "card": {
+        "_id": "65a1b2c3d4e5f6g7h8i9j0k2",
+        "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+        "question": "What is 3 + 3?",
+        "answer": "6",
+        "tag": "arithmetic-updated",
+        "note": "Updated note",
+        "created_at": "2024-01-15T10:30:00.000Z"
+      }
+    },
+
+    "deleteFlashcardSuccess": {
+      "message": "Flashcard deleted successfully"
+    },
+
+    "errorUnauthorized": {
+      "message": "No token provided"
+    },
+
+    "errorForbidden": {
+      "message": "Invalid token"
+    },
+
+    "errorNotFound": {
+      "message": "Flashcard not found"
+    },
+
+    "errorDeckNotFound": {
+      "message": "Deck not found"
+    },
+
+    "errorAccessDenied": {
+      "message": "Access denied. This deck is not public"
+    },
+
+    "errorValidation": {
+      "message": "Question is required"
+    }
+  },
+
+  "testScenarios": {
+    "scenario1_createAndRetrieve": {
+      "step1_create": {
+        "method": "POST",
+        "endpoint": "/api/flashcard/teacher/create",
+        "body": {
+          "deck_id": "{{deckId}}",
+          "question": "What is 2 + 2?",
+          "answer": "4",
+          "tag": "arithmetic"
+        },
+        "expectedStatus": 201,
+        "note": "Tạo flashcard mới"
+      },
+      "step2_getAll": {
+        "method": "GET",
+        "endpoint": "/api/flashcard/student/all",
+        "expectedStatus": 200,
+        "note": "Lấy tất cả flashcards"
+      },
+      "step3_getByDeck": {
+        "method": "GET",
+        "endpoint": "/api/flashcard/student/deck/{{deckId}}",
+        "expectedStatus": 200,
+        "note": "Lấy flashcards theo deck"
+      },
+      "step4_getById": {
+        "method": "GET",
+        "endpoint": "/api/flashcard/student/{{flashcardId}}",
+        "expectedStatus": 200,
+        "note": "Lấy flashcard theo ID (lấy từ step1 response)"
+      }
+    },
+
+    "scenario2_updateFlow": {
+      "step1_create": {
+        "method": "POST",
+        "endpoint": "/api/flashcard/teacher/create",
+        "body": {
+          "deck_id": "{{deckId}}",
+          "question": "Original question",
+          "answer": "Original answer"
+        }
+      },
+      "step2_update": {
+        "method": "PUT",
+        "endpoint": "/api/flashcard/teacher/update/{{flashcardId}}",
+        "body": {
+          "question": "Updated question",
+          "answer": "Updated answer",
+          "tag": "updated-tag"
+        },
+        "expectedStatus": 200
+      },
+      "step3_verify": {
+        "method": "GET",
+        "endpoint": "/api/flashcard/student/{{flashcardId}}",
+        "expectedStatus": 200,
+        "note": "Xác minh đã được cập nhật"
+      }
+    },
+
+    "scenario3_deleteFlow": {
+      "step1_create": {
+        "method": "POST",
+        "endpoint": "/api/flashcard/teacher/create",
+        "body": {
+          "deck_id": "{{deckId}}",
+          "question": "Question to delete",
+          "answer": "Answer"
+        }
+      },
+      "step2_delete": {
+        "method": "DELETE",
+        "endpoint": "/api/flashcard/teacher/delete/{{flashcardId}}",
+        "expectedStatus": 200
+      },
+      "step3_verifyDeleted": {
+        "method": "GET",
+        "endpoint": "/api/flashcard/student/{{flashcardId}}",
+        "expectedStatus": 404,
+        "note": "Xác minh đã bị xóa"
+      }
+    },
+
+    "scenario4_permissionTest": {
+      "step1_createDeckPrivate": {
+        "method": "POST",
+        "endpoint": "/api/deck/teacher/create",
+        "body": {
+          "title": "Private Deck",
+          "description": "This deck is private",
+          "isPublic": false
+        },
+        "note": "Tạo deck private (isPublic = false)"
+      },
+      "step2_createFlashcard": {
+        "method": "POST",
+        "endpoint": "/api/flashcard/teacher/create",
+        "body": {
+          "deck_id": "{{privateDeckId}}",
+          "question": "Private question",
+          "answer": "Private answer"
+        }
+      },
+      "step3_studentTryAccess": {
+        "method": "GET",
+        "endpoint": "/api/flashcard/student/deck/{{privateDeckId}}",
+        "auth": "studentToken",
+        "expectedStatus": 403,
+        "note": "Student không thể xem flashcards từ private deck"
+      },
+      "step4_makeDeckPublic": {
+        "method": "PUT",
+        "endpoint": "/api/deck/teacher/update/{{privateDeckId}}",
+        "body": {
+          "isPublic": true
+        },
+        "note": "Chuyển deck thành public"
+      },
+      "step5_studentAccessAfterPublic": {
+        "method": "GET",
+        "endpoint": "/api/flashcard/student/deck/{{privateDeckId}}",
+        "auth": "studentToken",
+        "expectedStatus": 200,
+        "note": "Sau khi public, student có thể xem"
+      }
+    }
+  },
+
+  "sampleFlashcardIds": {
+    "note": "Thay thế bằng ID thực từ database sau khi tạo flashcard",
+    "flashcardId1": "65a1b2c3d4e5f6g7h8i9j0k2",
+    "flashcardId2": "65a1b2c3d4e5f6g7h8i9j0k3",
+    "invalidFlashcardId": "invalid123",
+    "nonExistentFlashcardId": "65a1b2c3d4e5f6g7h8i9j999"
+  },
+
+  "edgeCases": {
+    "veryLongQuestion": {
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "Explain in detail the process of solving a quadratic equation using the quadratic formula. Include the derivation of the formula, when to use it, and provide multiple examples with different types of solutions (real, imaginary, equal roots).",
+      "answer": "The quadratic formula is x = (-b ± √(b² - 4ac)) / 2a, derived from completing the square of ax² + bx + c = 0.",
+      "tag": "algebra",
+      "note": "Comprehensive explanation required"
+    },
+    "veryLongAnswer": {
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "What is calculus?",
+      "answer": "Calculus is a branch of mathematics that studies continuous change. It has two main branches: differential calculus, which studies rates of change and slopes of curves, and integral calculus, which studies accumulation of quantities and areas under curves. Developed independently by Isaac Newton and Gottfried Wilhelm Leibniz in the 17th century, calculus is fundamental to many fields including physics, engineering, economics, and computer science.",
+      "tag": "calculus",
+      "note": "Detailed explanation"
+    },
+    "specialCharacters": {
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "What is ∫ x² dx?",
+      "answer": "x³/3 + C",
+      "tag": "integration",
+      "note": "Symbols: ∫, dx, C"
+    },
+    "unicode": {
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "Giải phương trình: x² + 5x + 6 = 0",
+      "answer": "x = -2 hoặc x = -3",
+      "tag": "phương trình bậc hai",
+      "note": "Tiếng Việt với dấu"
+    },
+    "htmlTags": {
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "What is <strong>2 + 2</strong>?",
+      "answer": "The answer is <em>4</em>",
+      "tag": "test",
+      "note": "Contains HTML tags (should be treated as plain text)"
+    },
+    "newlines": {
+      "deck_id": "65a1b2c3d4e5f6g7h8i9j0k1",
+      "question": "What is 2 + 2?\n\nShow your work:",
+      "answer": "2 + 2 = 4\n\nStep 1: Add 2 and 2\nStep 2: Result is 4",
+      "tag": "multi-line",
+      "note": "Contains line breaks"
+    }
+  }
+}
