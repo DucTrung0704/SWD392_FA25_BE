@@ -72,10 +72,7 @@ const generateOptions = (correctFlashcard, allFlashcards) => {
     };
 };
 
-// =============================
-// 🔹 START EXAM (Student)
-// Tạo submission mới khi student bắt đầu làm bài
-// =============================
+// START EXAM (Student) - Tạo submission mới khi student bắt đầu làm bài
 export const startExam = async (req, res) => {
     try {
         const { examId } = req.params;
@@ -128,8 +125,7 @@ export const startExam = async (req, res) => {
                     question: card.question,
                     tag: card.tag,
                     status: card.status,
-                    options: card.generatedOptions, // Trả về 4 options đã generate
-                    // Không trả về correctOption để student không thấy đáp án đúng
+                    options: card.generatedOptions, // Trả về 4 options đã generate, không trả về correctOption để student không thấy đáp án đúng
                 }))
             };
             
@@ -165,8 +161,7 @@ export const startExam = async (req, res) => {
                 question: card.question,
                 tag: card.tag,
                 status: card.status,
-                options: card.generatedOptions, // Trả về 4 options đã generate
-                // Không trả về correctOption để student không thấy đáp án đúng
+                options: card.generatedOptions, // Trả về 4 options đã generate, không trả về correctOption để student không thấy đáp án đúng
             }))
         };
         
@@ -188,10 +183,7 @@ export const startExam = async (req, res) => {
     }
 };
 
-// =============================
-// 🔹 SUBMIT ANSWER (Student)
-// Lưu câu trả lời cho một flashcard
-// =============================
+// SUBMIT ANSWER (Student) - Lưu câu trả lời cho một flashcard
 export const submitAnswer = async (req, res) => {
     try {
         const { submissionId } = req.params;
@@ -305,10 +297,7 @@ export const submitAnswer = async (req, res) => {
     }
 };
 
-// =============================
-// 🔹 FINISH EXAM (Student)
-// Nộp bài và tính điểm
-// =============================
+// FINISH EXAM (Student) - Nộp bài và tính điểm
 export const finishExam = async (req, res) => {
     try {
         const { submissionId } = req.params;
@@ -376,13 +365,13 @@ export const finishExam = async (req, res) => {
         const answeredQuestions = submission.answers.length;
         const unansweredQuestions = totalQuestions - answeredQuestions;
         
-        // Tính điểm: (số câu đúng / tổng số câu) * 100
+        // Tính điểm: (số câu đúng / tổng số câu) * 100, làm tròn 2 chữ số thập phân
         const score = totalQuestions > 0 
-            ? Math.round((correctAnswers / totalQuestions) * 100 * 100) / 100 // 2 decimal places
+            ? Math.round((correctAnswers / totalQuestions) * 100 * 100) / 100
             : 0;
 
-        // Tính thời gian làm bài
-        const timeSpent = Math.floor((new Date() - submission.started_at) / 1000 / 60); // minutes
+        // Tính thời gian làm bài (minutes)
+        const timeSpent = Math.floor((new Date() - submission.started_at) / 1000 / 60);
 
         // Cập nhật submission
         submission.status = 'submitted';
@@ -449,10 +438,7 @@ export const finishExam = async (req, res) => {
     }
 };
 
-// =============================
-// 🔹 GET SUBMISSION (Student)
-// Xem chi tiết submission
-// =============================
+// GET SUBMISSION (Student) - Xem chi tiết submission
 export const getSubmission = async (req, res) => {
     try {
         const { submissionId } = req.params;
@@ -478,10 +464,7 @@ export const getSubmission = async (req, res) => {
     }
 };
 
-// =============================
-// 🔹 GET MY SUBMISSIONS (Student)
-// Xem lịch sử làm bài của student
-// =============================
+// GET MY SUBMISSIONS (Student) - Xem lịch sử làm bài của student
 export const getMySubmissions = async (req, res) => {
     try {
         const studentId = req.user.id;
@@ -505,10 +488,97 @@ export const getMySubmissions = async (req, res) => {
     }
 };
 
-// =============================
-// 🔹 GET SUBMISSION BY EXAM (Student)
-// Lấy submission của student cho một exam cụ thể
-// =============================
+// GET MY COMPLETED TESTS (Student) - Xem các test đã hoàn thành (status = 'submitted')
+export const getMyCompletedTests = async (req, res) => {
+    try {
+        const studentId = req.user.id;
+        const { examId } = req.query;
+
+        // Chỉ lấy các submissions đã hoàn thành
+        const query = { 
+            student_id: studentId,
+            status: 'submitted'
+        };
+        
+        if (examId) {
+            query.exam_id = examId;
+        }
+
+        const submissions = await Submission.find(query)
+            .populate('exam_id', 'title description time_limit total_questions created_by')
+            .populate('answers.flashcard_id', 'question answer options correctOption tag status')
+            .sort({ submitted_at: -1 });
+
+        // Tính toán thống kê
+        const stats = {
+            total_completed: submissions.length,
+            average_score: submissions.length > 0
+                ? Math.round((submissions.reduce((sum, s) => sum + s.score, 0) / submissions.length) * 100) / 100
+                : 0,
+            total_questions_answered: submissions.reduce((sum, s) => sum + s.total_questions, 0),
+            total_correct_answers: submissions.reduce((sum, s) => sum + s.correct_answers, 0),
+        };
+
+        // Format kết quả để dễ đọc hơn
+        const formattedResults = submissions.map(submission => ({
+            _id: submission._id,
+            exam: {
+                _id: submission.exam_id._id,
+                title: submission.exam_id.title,
+                description: submission.exam_id.description,
+                time_limit: submission.exam_id.time_limit,
+                total_questions: submission.exam_id.total_questions,
+            },
+            score: submission.score,
+            total_questions: submission.total_questions,
+            correct_answers: submission.correct_answers,
+            incorrect_answers: submission.total_questions - submission.correct_answers,
+            time_spent: submission.time_spent,
+            submitted_at: submission.submitted_at,
+            started_at: submission.started_at,
+            // Chi tiết từng câu hỏi
+            answers: submission.answers.map(answer => {
+                // Lấy options từ generatedOptions hoặc từ flashcard
+                let options = {};
+                if (submission.generatedOptions && submission.generatedOptions.length > 0) {
+                    const generatedOption = submission.generatedOptions.find(
+                        opt => opt.flashcard_id.toString() === answer.flashcard_id._id.toString()
+                    );
+                    if (generatedOption) {
+                        options = generatedOption.options;
+                    }
+                }
+                
+                if (!options || Object.keys(options).length === 0) {
+                    options = answer.flashcard_id.options || {};
+                }
+
+                return {
+                    flashcard_id: answer.flashcard_id._id,
+                    question: answer.flashcard_id.question,
+                    tag: answer.flashcard_id.tag,
+                    options: options,
+                    selected_option: answer.selected_option,
+                    correct_option: answer.correct_option,
+                    is_correct: answer.is_correct,
+                    selected_answer_text: options[answer.selected_option] || answer.selected_option,
+                    correct_answer_text: options[answer.correct_option] || answer.flashcard_id.answer,
+                };
+            })
+        }));
+
+        res.json({
+            message: 'My completed tests retrieved successfully',
+            results: formattedResults,
+            statistics: stats,
+            total: submissions.length
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// GET SUBMISSION BY EXAM (Student) - Lấy submission của student cho một exam cụ thể
 export const getSubmissionByExam = async (req, res) => {
     try {
         const { examId } = req.params;
@@ -532,10 +602,7 @@ export const getSubmissionByExam = async (req, res) => {
     }
 };
 
-// =============================
-// 🔹 GET ALL SUBMISSIONS (Teacher/Admin)
-// Xem tất cả submissions với filter options
-// =============================
+// GET ALL SUBMISSIONS (Teacher/Admin) - Xem tất cả submissions với filter options
 export const getAllSubmissions = async (req, res) => {
     try {
         const { examId, studentId, status, sortBy = 'started_at', sortOrder = 'desc' } = req.query;

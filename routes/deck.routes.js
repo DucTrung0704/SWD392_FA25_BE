@@ -22,7 +22,6 @@ const router = express.Router();
 // 🔓 PUBLIC ROUTES (Có thể cần xác thực tùy theo logic)
 // ==================================================
 
-// ==================================================
 // 👩‍🎓 STUDENT ROUTES (Student có thể xem)
 // ==================================================
 router.get('/all', verifyToken, getAllDecks);
@@ -38,9 +37,8 @@ router.put('/teacher/update/:id', verifyToken, requireTeacherOrAdmin, checkOwner
 router.delete('/teacher/delete/:id', verifyToken, requireTeacherOrAdmin, checkOwnership(), deleteDeck);
 router.get('/teacher/:teacherId', verifyToken, requireTeacherOrAdmin, getDecksByTeacher);
 
-// ==================================================
-// 👨‍💼 ADMIN ROUTES (Chỉ Admin)
-// ==================================================
+// ADMIN ROUTES (Chỉ Admin)
+
 router.get('/admin/all', verifyToken, allowRoles('Admin'), getAllDecks);
 router.delete('/admin/delete/:id', verifyToken, allowRoles('Admin'), deleteDeck);
 

@@ -75,6 +75,7 @@ import flashcardDeckRoutes from './routes/deck.routes.js';
 import flashcardRoutes from './routes/flashcard.routes.js';
 import examRoutes from './routes/exam.routes.js';
 import submissionRoutes from './routes/submission.routes.js';
+import classRoutes from './routes/class.routes.js';
 
 // ==================================================
 // ✅ 6️⃣  Gắn routes vào app
@@ -84,6 +85,7 @@ app.use('/api/deck', flashcardDeckRoutes);
 app.use('/api/flashcard', flashcardRoutes);
 app.use('/api/exam', examRoutes);
 app.use('/api/submission', submissionRoutes);
+app.use('/api/class', classRoutes);
 
 // ==================================================
 // ✅ 8️⃣  Swagger Documentation

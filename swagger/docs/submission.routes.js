@@ -226,6 +226,109 @@
 
 /**
  * @swagger
+ * /api/submission/student/completed-tests:
+ *   get:
+ *     summary: Get all completed tests (Student only)
+ *     description: Xem tất cả các test đã hoàn thành (status = 'submitted') của student. Trả về chi tiết đầy đủ bao gồm từng câu hỏi, đáp án đã chọn, đáp án đúng, và thống kê.
+ *     tags: [Submissions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: examId
+ *         schema:
+ *           type: string
+ *         description: Optional - Filter by exam ID
+ *     responses:
+ *       200:
+ *         description: List of completed tests with detailed results
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       exam:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                           title:
+ *                             type: string
+ *                           description:
+ *                             type: string
+ *                           time_limit:
+ *                             type: number
+ *                           total_questions:
+ *                             type: number
+ *                       score:
+ *                         type: number
+ *                       total_questions:
+ *                         type: number
+ *                       correct_answers:
+ *                         type: number
+ *                       incorrect_answers:
+ *                         type: number
+ *                       time_spent:
+ *                         type: number
+ *                       submitted_at:
+ *                         type: string
+ *                         format: date-time
+ *                       started_at:
+ *                         type: string
+ *                         format: date-time
+ *                       answers:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             flashcard_id:
+ *                               type: string
+ *                             question:
+ *                               type: string
+ *                             tag:
+ *                               type: string
+ *                             options:
+ *                               type: object
+ *                             selected_option:
+ *                               type: string
+ *                             correct_option:
+ *                               type: string
+ *                             is_correct:
+ *                               type: boolean
+ *                             selected_answer_text:
+ *                               type: string
+ *                             correct_answer_text:
+ *                               type: string
+ *                 statistics:
+ *                   type: object
+ *                   properties:
+ *                     total_completed:
+ *                       type: number
+ *                     average_score:
+ *                       type: number
+ *                     total_questions_answered:
+ *                       type: number
+ *                     total_correct_answers:
+ *                       type: number
+ *                 total:
+ *                   type: number
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Student access only
+ */
+
+/**
+ * @swagger
  * /api/submission/student/exam/{examId}:
  *   get:
  *     summary: Get submission by exam (Student)
@@ -316,4 +419,5 @@
  *                     average_score:
  *                       type: number
  */
+
 

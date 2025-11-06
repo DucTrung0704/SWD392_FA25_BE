@@ -265,6 +265,59 @@ const options = {
             }
           }
         },
+        Class: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'Class ID'
+            },
+            name: {
+              type: 'string',
+              description: 'Class name'
+            },
+            description: {
+              type: 'string',
+              description: 'Class description'
+            },
+            teacher_id: {
+              type: 'string',
+              description: 'Teacher user ID'
+            },
+            students: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              description: 'Array of student user IDs'
+            },
+            exams: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              description: 'Array of exam IDs'
+            },
+            class_code: {
+              type: 'string',
+              description: 'Unique class code for students to join'
+            },
+            isActive: {
+              type: 'boolean',
+              description: 'Whether class is active'
+            },
+            created_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Creation date'
+            },
+            updated_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Last update date'
+            }
+          }
+        },
         Error: {
           type: 'object',
           properties: {
