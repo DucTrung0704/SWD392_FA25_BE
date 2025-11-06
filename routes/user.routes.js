@@ -4,6 +4,7 @@ import {
     loginUser, 
     updateUser, 
     getUserProfile,
+    changePassword,
     getAllUsers,
     getUserById,
     updateUserRole,
@@ -40,6 +41,7 @@ userRouter.put('/update', verifyToken, (req, res, next) => {
         next();
     });
 }, updateUser);
+userRouter.put('/change-password', verifyToken, changePassword);
 
 // ==================================================
 // 👨‍💼 ADMIN ROUTES (Chỉ Admin mới truy cập được)

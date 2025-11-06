@@ -198,6 +198,85 @@
 
 /**
  * @swagger
+ * /api/user/change-password:
+ *   put:
+ *     summary: Change password
+ *     description: User đổi password của chính mình. Yêu cầu password cũ để xác minh, password mới và confirm password.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *               - confirmPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: Current password
+ *                 example: "oldpassword123"
+ *               newPassword:
+ *                 type: string
+ *                 minLength: 6
+ *                 description: New password (must be at least 6 characters)
+ *                 example: "newpassword123"
+ *               confirmPassword:
+ *                 type: string
+ *                 description: Confirm new password (must match newPassword)
+ *                 example: "newpassword123"
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Password changed successfully"
+ *       400:
+ *         description: Bad request - Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   examples:
+ *                     - "currentPassword, newPassword, and confirmPassword are required"
+ *                     - "New password must be at least 6 characters long"
+ *                     - "New password and confirm password do not match"
+ *                     - "New password must be different from current password"
+ *       401:
+ *         description: Unauthorized - Invalid current password or missing token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Current password is incorrect"
+ *                 code:
+ *                   type: string
+ *                   example: "INVALID_CURRENT_PASSWORD"
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
  * /api/user/admin/all:
  *   get:
  *     summary: Get all users (Admin only) - CRUD Account
