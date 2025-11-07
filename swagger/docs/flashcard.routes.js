@@ -73,10 +73,113 @@
 
 /**
  * @swagger
+ * /api/flashcard/teacher/my-flashcards:
+ *   get:
+ *     summary: Get my flashcards (Teacher/Admin only)
+ *     description: Lấy tất cả flashcards từ các decks mà teacher hiện tại đã tạo
+ *     tags: [Flashcards]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of my flashcards
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: My flashcards retrieved successfully
+ *                 count:
+ *                   type: number
+ *                   description: Total number of flashcards
+ *                 flashcards:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Flashcard'
+ *                 total_decks:
+ *                   type: number
+ *                   description: Total number of decks owned by teacher
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - Teacher/Admin role required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
+ * /api/flashcard/teacher/{teacherId}:
+ *   get:
+ *     summary: Get flashcards by teacher ID (Teacher/Admin only)
+ *     description: Lấy tất cả flashcards từ các decks của một teacher cụ thể. Teacher chỉ có thể xem flashcards của chính mình, Admin có thể xem tất cả.
+ *     tags: [Flashcards]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: teacherId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Teacher user ID
+ *     responses:
+ *       200:
+ *         description: List of teacher's flashcards
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 count:
+ *                   type: number
+ *                 flashcards:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Flashcard'
+ *                 teacher:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                 total_decks:
+ *                   type: number
+ *       403:
+ *         description: Access denied - You can only view your own flashcards
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
  * /api/flashcard/teacher/create:
  *   post:
  *     summary: Create a new flashcard (Teacher/Admin only)
- *     description: Create flashcard đơn giản (giống Quizlet) - chỉ cần question và answer. Options sẽ tự động generate khi làm bài.
+ *     description: Create flashcard đơn giản - chỉ cần question và answer. Không có options và correctOption (chỉ dùng trong question bank).
  *     tags: [Flashcards]
  *     security:
  *       - bearerAuth: []
@@ -103,25 +206,13 @@
  *                 description: Answer text
  *               tag:
  *                 type: string
- *                 enum: [geometry, algebra, probability]
+ *                 enum: [geometry, algebra, probability, calculus, statistics, other]
  *                 description: Flashcard category tag
  *               status:
  *                 type: string
  *                 enum: [easy, medium, hard]
  *                 default: medium
  *                 description: Difficulty level
- *               options:
- *                 type: object
- *                 description: Optional - 4 multiple choice options
- *                 properties:
- *                   A: { type: string }
- *                   B: { type: string }
- *                   C: { type: string }
- *                   D: { type: string }
- *               correctOption:
- *                 type: string
- *                 enum: [A, B, C, D]
- *                 description: Optional - Correct option (required if options provided)
  *     responses:
  *       201:
  *         description: Flashcard created successfully
@@ -172,24 +263,12 @@
  *                 description: Answer text
  *               tag:
  *                 type: string
- *                 enum: [geometry, algebra, probability]
+ *                 enum: [geometry, algebra, probability, calculus, statistics, other]
  *                 description: Flashcard category tag
  *               status:
  *                 type: string
  *                 enum: [easy, medium, hard]
  *                 description: Difficulty level
- *               options:
- *                 type: object
- *                 description: Optional - 4 multiple choice options
- *                 properties:
- *                   A: { type: string }
- *                   B: { type: string }
- *                   C: { type: string }
- *                   D: { type: string }
- *               correctOption:
- *                 type: string
- *                 enum: [A, B, C, D]
- *                 description: Optional - Correct option (required if options provided)
  *     responses:
  *       200:
  *         description: Flashcard updated successfully

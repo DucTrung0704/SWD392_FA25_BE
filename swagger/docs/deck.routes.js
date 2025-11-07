@@ -165,6 +165,93 @@
 
 /**
  * @swagger
+ * /api/deck/teacher/my-decks:
+ *   get:
+ *     summary: Get my decks (Teacher/Admin only)
+ *     description: Lấy tất cả decks mà teacher hiện tại đã tạo
+ *     tags: [Decks]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of my decks
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: My decks retrieved successfully
+ *                 decks:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Deck'
+ *                 total:
+ *                   type: number
+ *                   description: Total number of decks
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - Teacher/Admin role required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
+ * /api/deck/teacher/{teacherId}:
+ *   get:
+ *     summary: Get decks by teacher ID (Teacher/Admin only)
+ *     description: Lấy tất cả decks của một teacher cụ thể. Teacher chỉ có thể xem decks của chính mình, Admin có thể xem tất cả.
+ *     tags: [Decks]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: teacherId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Teacher user ID
+ *     responses:
+ *       200:
+ *         description: List of teacher's decks
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 decks:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Deck'
+ *                 total:
+ *                   type: number
+ *       403:
+ *         description: Access denied - You can only view your own decks
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+
+/**
+ * @swagger
  * /api/deck/teacher/delete/{id}:
  *   delete:
  *     summary: Delete deck (Teacher/Admin only)

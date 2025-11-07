@@ -5,6 +5,8 @@ import {
     updateFlashcard,
     deleteFlashcard,
     getFlashcardsByDeck,
+    getMyFlashcards,
+    getFlashcardsByTeacher,
 } from '../controllers/flashcard.controller.js';
 
 import { 
@@ -25,6 +27,7 @@ router.get('/student/deck/:deckId', verifyToken, getFlashcardsByDeck);
 // 👨‍🏫 TEACHER ROUTES (Teacher và Admin có thể truy cập)
 // ==================================================
 router.get('/teacher/all', verifyToken, requireTeacherOrAdmin, getAllFlashcards);
+router.get('/teacher/my-flashcards', verifyToken, requireTeacherOrAdmin, getMyFlashcards);
 
 router.post(
     '/teacher/create',
@@ -48,6 +51,9 @@ router.delete(
     checkOwnership(),
     deleteFlashcard
 );
+
+// Get flashcards by teacher ID (Teacher chỉ xem được của mình, Admin xem được tất cả)
+router.get('/teacher/:teacherId', verifyToken, requireTeacherOrAdmin, getFlashcardsByTeacher);
 
 // ==================================================
 // 👨‍💼 ADMIN ROUTES (Chỉ Admin)

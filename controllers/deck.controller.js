@@ -183,10 +183,19 @@ export const getMyDecks = async (req, res) => {
 
 // =============================
 // 🔹 GET DECKS BY TEACHER (Teacher/Admin only)
+// Teacher chỉ có thể xem decks của chính mình, Admin có thể xem tất cả
 // =============================
 export const getDecksByTeacher = async (req, res) => {
     try {
         const { teacherId } = req.params;
+        const currentUserId = req.user.id;
+        const userRole = req.user.role;
+
+        // Teacher chỉ có thể xem decks của chính mình, Admin có thể xem tất cả
+        if (userRole !== 'Admin' && teacherId !== currentUserId) {
+            return res.status(403).json({ message: 'You can only view your own decks' });
+        }
+
         const decks = await FlashcardDeck.find({ created_by: teacherId })
             .populate('created_by', 'name email role')
             .sort({ created_at: -1 });

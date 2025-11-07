@@ -1,5 +1,6 @@
 import Flashcard from '../models/flashcard.model.js';
 import FlashcardDeck from '../models/deck.model.js';
+import User from '../models/user.model.js';
 
 // ==================================================
 // 🔹 CREATE FLASHCARD (Teacher only)
@@ -158,6 +159,95 @@ export const deleteFlashcard = async (req, res) => {
 
         await card.deleteOne();
         res.json({ message: 'Flashcard deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// ==================================================
+// 🔹 GET MY FLASHCARDS (Teacher only)
+// Lấy tất cả flashcards từ các decks mà teacher tạo
+// ==================================================
+export const getMyFlashcards = async (req, res) => {
+    try {
+        const teacherId = req.user.id;
+        const userRole = req.user.role;
+
+        // Tìm tất cả decks của teacher
+        const teacherDecks = await FlashcardDeck.find({ created_by: teacherId });
+        const deckIds = teacherDecks.map(deck => deck._id);
+
+        if (deckIds.length === 0) {
+            return res.json({
+                message: 'My flashcards retrieved successfully',
+                count: 0,
+                flashcards: [],
+                decks: []
+            });
+        }
+
+        // Tìm tất cả flashcards thuộc các decks của teacher
+        const flashcards = await Flashcard.find({ deck_id: { $in: deckIds } })
+            .populate('deck_id', 'title description')
+            .sort({ created_at: -1 });
+
+        res.json({
+            message: 'My flashcards retrieved successfully',
+            count: flashcards.length,
+            flashcards,
+            total_decks: teacherDecks.length
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// ==================================================
+// 🔹 GET FLASHCARDS BY TEACHER (Teacher/Admin only)
+// Lấy tất cả flashcards từ các decks của một teacher cụ thể
+// ==================================================
+export const getFlashcardsByTeacher = async (req, res) => {
+    try {
+        const { teacherId } = req.params;
+        const currentUserId = req.user.id;
+        const userRole = req.user.role;
+
+        // Teacher chỉ có thể xem flashcards của chính mình, Admin có thể xem tất cả
+        if (userRole !== 'Admin' && teacherId !== currentUserId) {
+            return res.status(403).json({ message: 'You can only view your own flashcards' });
+        }
+
+        // Tìm tất cả decks của teacher
+        const teacherDecks = await FlashcardDeck.find({ created_by: teacherId })
+            .populate('created_by', 'name email role');
+        
+        if (teacherDecks.length === 0) {
+            // Nếu không có decks, vẫn cần lấy thông tin teacher
+            const teacher = await User.findById(teacherId).select('name email role');
+            
+            return res.json({
+                message: 'Teacher flashcards retrieved successfully',
+                count: 0,
+                flashcards: [],
+                teacher: teacher || null,
+                total_decks: 0
+            });
+        }
+
+        const deckIds = teacherDecks.map(deck => deck._id);
+
+        // Tìm tất cả flashcards thuộc các decks của teacher
+        const flashcards = await Flashcard.find({ deck_id: { $in: deckIds } })
+            .populate('deck_id', 'title description created_by')
+            .sort({ created_at: -1 });
+
+        res.json({
+            message: 'Teacher flashcards retrieved successfully',
+            count: flashcards.length,
+            flashcards,
+            teacher: teacherDecks[0].created_by,
+            total_decks: teacherDecks.length
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
