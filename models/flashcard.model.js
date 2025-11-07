@@ -14,21 +14,9 @@ const flashcardSchema = new mongoose.Schema({
         type: String, 
         required: true,
     },
-    // 4 đáp án A, B, C, D cho multiple choice (optional - sẽ tự động generate khi làm bài)
-    options: {
-        A: { type: String },
-        B: { type: String },
-        C: { type: String },
-        D: { type: String },
-    },
-    // Đáp án đúng: 'A', 'B', 'C', hoặc 'D' (optional - sẽ tự động generate khi làm bài)
-    correctOption: {
-        type: String,
-        enum: ['A', 'B', 'C', 'D'],
-    },
     tag: {
         type: String,
-        enum: ['geometry', 'algebra', 'probability'],
+        enum: ['geometry', 'algebra', 'probability', 'calculus', 'statistics', 'other'],
         required: true,
     },
     status: {

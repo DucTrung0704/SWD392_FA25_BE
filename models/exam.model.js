@@ -8,9 +8,9 @@ const examSchema = new mongoose.Schema({
     description: { 
         type: String 
     },
-    flashcards: [{
+    questions: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Flashcard',
+        ref: 'Question',
     }],
     time_limit: { 
         type: Number, // in minutes
@@ -39,9 +39,9 @@ const examSchema = new mongoose.Schema({
     },
 });
 
-// Middleware để tự động cập nhật total_questions khi flashcards thay đổi
+// Middleware để tự động cập nhật total_questions khi questions thay đổi
 examSchema.pre('save', function(next) {
-    this.total_questions = this.flashcards ? this.flashcards.length : 0;
+    this.total_questions = this.questions ? this.questions.length : 0;
     this.updated_at = Date.now();
     next();
 });

@@ -15,7 +15,10 @@ const submissionSchema = new mongoose.Schema({
         flashcard_id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Flashcard',
-            required: true,
+        },
+        question_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Question',
         },
         selected_option: {
             type: String,
@@ -63,11 +66,15 @@ const submissionSchema = new mongoose.Schema({
         type: Number, // in minutes
         default: 0,
     },
-    // Lưu generated options cho mỗi flashcard khi start exam
+    // Lưu generated options cho mỗi flashcard/question khi start exam
     generatedOptions: [{
         flashcard_id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Flashcard',
+        },
+        question_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Question',
         },
         options: {
             A: String,

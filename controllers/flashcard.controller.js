@@ -6,7 +6,7 @@ import FlashcardDeck from '../models/deck.model.js';
 // ==================================================
 export const createFlashcard = async (req, res) => {
     try {
-        const { deck_id, question, answer, options, correctOption, tag, status } = req.body;
+        const { deck_id, question, answer, tag, status } = req.body;
 
         // Validate required fields
         if (!deck_id) {
@@ -22,26 +22,10 @@ export const createFlashcard = async (req, res) => {
             return res.status(400).json({ message: 'Tag is required' });
         }
 
-        // Validate options nếu được cung cấp (không bắt buộc)
-        if (options) {
-            if (!options.A || !options.B || !options.C || !options.D) {
-                return res.status(400).json({ message: 'If options are provided, all A, B, C, D must be filled' });
-            }
-        }
-
-        // Validate correctOption nếu được cung cấp
-        if (correctOption && !['A', 'B', 'C', 'D'].includes(correctOption)) {
-            return res.status(400).json({ message: 'correctOption must be A, B, C, or D' });
-        }
-
-        // Nếu có options thì phải có correctOption và ngược lại
-        if ((options && !correctOption) || (!options && correctOption)) {
-            return res.status(400).json({ message: 'Options and correctOption must be provided together, or both omitted' });
-        }
-
         // Validate tag
-        if (!['geometry', 'algebra', 'probability'].includes(tag)) {
-            return res.status(400).json({ message: 'Tag must be one of: geometry, algebra, probability' });
+        const validTags = ['geometry', 'algebra', 'probability', 'calculus', 'statistics', 'other'];
+        if (!validTags.includes(tag)) {
+            return res.status(400).json({ message: `Tag must be one of: ${validTags.join(', ')}` });
         }
 
         // Validate status if provided
@@ -56,17 +40,6 @@ export const createFlashcard = async (req, res) => {
             tag,
             status: status || 'medium', // Default to medium
         };
-
-        // Chỉ thêm options và correctOption nếu được cung cấp
-        if (options && correctOption) {
-            cardData.options = {
-                A: options.A,
-                B: options.B,
-                C: options.C,
-                D: options.D,
-            };
-            cardData.correctOption = correctOption;
-        }
 
         const card = await Flashcard.create(cardData);
 
@@ -144,13 +117,16 @@ export const getFlashcardById = async (req, res) => {
 export const updateFlashcard = async (req, res) => {
     try {
         const { id } = req.params;
-        const { question, answer, options, correctOption, tag, status } = req.body;
+        const { question, answer, tag, status } = req.body;
         const card = await Flashcard.findById(id);
         if (!card) return res.status(404).json({ message: 'Flashcard not found' });
 
         // Validate tag if provided
-        if (tag !== undefined && !['geometry', 'algebra', 'probability'].includes(tag)) {
-            return res.status(400).json({ message: 'Tag must be one of: geometry, algebra, probability' });
+        if (tag !== undefined) {
+            const validTags = ['geometry', 'algebra', 'probability', 'calculus', 'statistics', 'other'];
+            if (!validTags.includes(tag)) {
+                return res.status(400).json({ message: `Tag must be one of: ${validTags.join(', ')}` });
+            }
         }
 
         // Validate status if provided
@@ -158,38 +134,11 @@ export const updateFlashcard = async (req, res) => {
             return res.status(400).json({ message: 'Status must be one of: easy, medium, hard' });
         }
 
-        // Validate correctOption if provided
-        if (correctOption !== undefined && !['A', 'B', 'C', 'D'].includes(correctOption)) {
-            return res.status(400).json({ message: 'correctOption must be A, B, C, or D' });
-        }
-
-        // Validate options if provided
-        if (options !== undefined) {
-            if (!options.A || !options.B || !options.C || !options.D) {
-                return res.status(400).json({ message: 'If options are provided, all A, B, C, D must be filled' });
-            }
-        }
-
-        // Nếu có options thì phải có correctOption và ngược lại
-        if ((options !== undefined && correctOption === undefined && !card.correctOption) || 
-            (options === undefined && correctOption !== undefined && !card.options)) {
-            return res.status(400).json({ message: 'Options and correctOption must be provided together' });
-        }
-
         // Cập nhật các trường nếu có
         if (question !== undefined) card.question = question;
         if (answer !== undefined) card.answer = answer;
         if (tag !== undefined) card.tag = tag;
         if (status !== undefined) card.status = status;
-        if (correctOption !== undefined) card.correctOption = correctOption;
-        if (options !== undefined) {
-            card.options = {
-                A: options.A,
-                B: options.B,
-                C: options.C,
-                D: options.D,
-            };
-        }
 
         await card.save();
 

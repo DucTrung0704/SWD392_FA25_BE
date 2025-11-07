@@ -1,12 +1,12 @@
 import Exam from '../models/exam.model.js';
-import Flashcard from '../models/flashcard.model.js';
+import Question from '../models/question.model.js';
 
 // =============================
 // 🔹 CREATE EXAM (Teacher only)
 // =============================
 export const createExam = async (req, res) => {
     try {
-        const { title, description, flashcards, time_limit, isPublic } = req.body;
+        const { title, description, questions, time_limit, isPublic } = req.body;
 
         // Validate required fields
         if (!title) {
@@ -28,19 +28,39 @@ export const createExam = async (req, res) => {
             return res.status(400).json({ message: 'Time limit must be a positive number (in minutes)' });
         }
 
-        // Validate flashcards if provided
-        if (flashcards && Array.isArray(flashcards)) {
-            // Verify all flashcard IDs exist
-            const validFlashcards = await Flashcard.find({ _id: { $in: flashcards } });
-            if (validFlashcards.length !== flashcards.length) {
-                return res.status(400).json({ message: 'One or more flashcard IDs are invalid' });
+        // Validate questions if provided
+        if (questions && Array.isArray(questions)) {
+            if (questions.length === 0) {
+                return res.status(400).json({ message: 'Questions array cannot be empty' });
             }
+
+            // Verify all question IDs exist and are active
+            const validQuestions = await Question.find({ 
+                _id: { $in: questions },
+                isActive: true 
+            });
+            
+            if (validQuestions.length !== questions.length) {
+                return res.status(400).json({ message: 'One or more question IDs are invalid or inactive' });
+            }
+
+            // Teacher chỉ có thể dùng questions của mình (trừ Admin)
+            if (req.user.role !== 'Admin') {
+                const teacherQuestions = validQuestions.filter(
+                    q => q.created_by.toString() === req.user.id
+                );
+                if (teacherQuestions.length !== questions.length) {
+                    return res.status(403).json({ message: 'You can only use questions from your question bank' });
+                }
+            }
+        } else {
+            return res.status(400).json({ message: 'Questions array is required' });
         }
 
         const newExam = await Exam.create({
             title,
             description,
-            flashcards: flashcards || [],
+            questions: questions || [],
             time_limit: time_limit || 60,
             isPublic: isPublic !== undefined ? isPublic : false,
             created_by: req.user.id,
@@ -48,7 +68,7 @@ export const createExam = async (req, res) => {
 
         // Populate created_by for response
         await newExam.populate('created_by', 'name email');
-        await newExam.populate('flashcards');
+        await newExam.populate('questions');
 
         res.status(201).json({ message: 'Exam created successfully', exam: newExam });
     } catch (error) {
@@ -72,7 +92,7 @@ export const getAllExams = async (req, res) => {
 
         const exams = await Exam.find(query)
             .populate('created_by', 'name email role')
-            .populate('flashcards')
+            .populate('questions')
             .sort({ created_at: -1 });
 
         res.json(exams);
@@ -90,7 +110,7 @@ export const getExamById = async (req, res) => {
     try {
         const exam = await Exam.findById(req.params.id)
             .populate('created_by', 'name email')
-            .populate('flashcards');
+            .populate('questions');
         
         if (!exam) {
             return res.status(404).json({ message: 'Exam not found' });
@@ -147,7 +167,7 @@ export const updateExam = async (req, res) => {
 
         // Populate for response
         await exam.populate('created_by', 'name email');
-        await exam.populate('flashcards');
+        await exam.populate('questions');
 
         res.json({ message: 'Exam updated successfully', exam });
     } catch (error) {
@@ -187,7 +207,7 @@ export const getMyExams = async (req, res) => {
         const teacherId = req.user.id;
         const exams = await Exam.find({ created_by: teacherId })
             .populate('created_by', 'name email')
-            .populate('flashcards')
+            .populate('questions')
             .sort({ created_at: -1 });
 
         res.json({
@@ -201,15 +221,16 @@ export const getMyExams = async (req, res) => {
 };
 
 // =============================
-// 🔹 ADD FLASHCARDS TO EXAM (Teacher only)
+// 🔹 ADD QUESTIONS TO EXAM (Teacher only)
+// Thêm questions từ question bank vào exam
 // =============================
-export const addFlashcardsToExam = async (req, res) => {
+export const addQuestionsToExam = async (req, res) => {
     try {
         const { id } = req.params;
-        const { flashcard_ids } = req.body;
+        const { question_ids } = req.body;
 
-        if (!flashcard_ids || !Array.isArray(flashcard_ids) || flashcard_ids.length === 0) {
-            return res.status(400).json({ message: 'flashcard_ids must be a non-empty array' });
+        if (!question_ids || !Array.isArray(question_ids) || question_ids.length === 0) {
+            return res.status(400).json({ message: 'question_ids must be a non-empty array' });
         }
 
         const exam = await Exam.findById(id);
@@ -217,36 +238,50 @@ export const addFlashcardsToExam = async (req, res) => {
             return res.status(404).json({ message: 'Exam not found' });
         }
 
-        // Chỉ người tạo hoặc admin mới được thêm flashcards
+        // Chỉ người tạo hoặc admin mới được thêm questions
         if (exam.created_by.toString() !== req.user.id && req.user.role !== 'Admin') {
             return res.status(403).json({ message: 'You do not have permission to modify this exam' });
         }
 
-        // Verify all flashcard IDs exist
-        const validFlashcards = await Flashcard.find({ _id: { $in: flashcard_ids } });
-        if (validFlashcards.length !== flashcard_ids.length) {
-            return res.status(400).json({ message: 'One or more flashcard IDs are invalid' });
-        }
-
-        // Add flashcards to exam (avoid duplicates)
-        const existingFlashcards = exam.flashcards.map(id => id.toString());
-        const newFlashcards = flashcard_ids.filter(id => !existingFlashcards.includes(id.toString()));
+        // Verify all question IDs exist and are active
+        const validQuestions = await Question.find({ 
+            _id: { $in: question_ids },
+            isActive: true 
+        });
         
-        if (newFlashcards.length === 0) {
-            return res.status(400).json({ message: 'All flashcards are already in this exam' });
+        if (validQuestions.length !== question_ids.length) {
+            return res.status(400).json({ message: 'One or more question IDs are invalid or inactive' });
         }
 
-        exam.flashcards.push(...newFlashcards);
+        // Teacher chỉ có thể dùng questions của mình (trừ Admin)
+        if (req.user.role !== 'Admin') {
+            const teacherQuestions = validQuestions.filter(
+                q => q.created_by.toString() === req.user.id
+            );
+            if (teacherQuestions.length !== question_ids.length) {
+                return res.status(403).json({ message: 'You can only use questions from your question bank' });
+            }
+        }
+
+        // Add questions to exam (avoid duplicates)
+        const existingQuestions = exam.questions.map(id => id.toString());
+        const newQuestions = question_ids.filter(id => !existingQuestions.includes(id.toString()));
+        
+        if (newQuestions.length === 0) {
+            return res.status(400).json({ message: 'All questions are already in this exam' });
+        }
+
+        exam.questions.push(...newQuestions);
         await exam.save();
 
         // Populate for response
         await exam.populate('created_by', 'name email');
-        await exam.populate('flashcards');
+        await exam.populate('questions');
 
         res.json({ 
-            message: `${newFlashcards.length} flashcard(s) added successfully`,
+            message: `${newQuestions.length} question(s) added successfully`,
             exam,
-            added_count: newFlashcards.length
+            added_count: newQuestions.length
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -254,15 +289,16 @@ export const addFlashcardsToExam = async (req, res) => {
 };
 
 // =============================
-// 🔹 REMOVE FLASHCARDS FROM EXAM (Teacher only)
+// 🔹 REMOVE QUESTIONS FROM EXAM (Teacher only)
+// Xóa questions khỏi exam
 // =============================
-export const removeFlashcardsFromExam = async (req, res) => {
+export const removeQuestionsFromExam = async (req, res) => {
     try {
         const { id } = req.params;
-        const { flashcard_ids } = req.body;
+        const { question_ids } = req.body;
 
-        if (!flashcard_ids || !Array.isArray(flashcard_ids) || flashcard_ids.length === 0) {
-            return res.status(400).json({ message: 'flashcard_ids must be a non-empty array' });
+        if (!question_ids || !Array.isArray(question_ids) || question_ids.length === 0) {
+            return res.status(400).json({ message: 'question_ids must be a non-empty array' });
         }
 
         const exam = await Exam.findById(id);
@@ -270,30 +306,30 @@ export const removeFlashcardsFromExam = async (req, res) => {
             return res.status(404).json({ message: 'Exam not found' });
         }
 
-        // Chỉ người tạo hoặc admin mới được xóa flashcards
+        // Chỉ người tạo hoặc admin mới được xóa questions
         if (exam.created_by.toString() !== req.user.id && req.user.role !== 'Admin') {
             return res.status(403).json({ message: 'You do not have permission to modify this exam' });
         }
 
-        // Remove flashcards from exam
-        const initialLength = exam.flashcards.length;
-        exam.flashcards = exam.flashcards.filter(
-            id => !flashcard_ids.includes(id.toString())
+        // Remove questions from exam
+        const initialLength = exam.questions.length;
+        exam.questions = exam.questions.filter(
+            id => !question_ids.includes(id.toString())
         );
-        const removedCount = initialLength - exam.flashcards.length;
+        const removedCount = initialLength - exam.questions.length;
 
         if (removedCount === 0) {
-            return res.status(400).json({ message: 'No flashcards were removed. They may not exist in this exam' });
+            return res.status(400).json({ message: 'No questions were removed. They may not exist in this exam' });
         }
 
         await exam.save();
 
         // Populate for response
         await exam.populate('created_by', 'name email');
-        await exam.populate('flashcards');
+        await exam.populate('questions');
 
         res.json({ 
-            message: `${removedCount} flashcard(s) removed successfully`,
+            message: `${removedCount} question(s) removed successfully`,
             exam,
             removed_count: removedCount
         });

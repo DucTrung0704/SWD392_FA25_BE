@@ -6,8 +6,8 @@ import {
     updateExam,
     deleteExam,
     getMyExams,
-    addFlashcardsToExam,
-    removeFlashcardsFromExam
+    addQuestionsToExam,
+    removeQuestionsFromExam
 } from '../controllers/exam.controller.js';
 
 import { 
@@ -34,9 +34,9 @@ router.get('/teacher/my-exams', verifyToken, requireTeacherOrAdmin, getMyExams);
 router.put('/teacher/update/:id', verifyToken, requireTeacherOrAdmin, checkOwnership(), updateExam);
 router.delete('/teacher/delete/:id', verifyToken, requireTeacherOrAdmin, checkOwnership(), deleteExam);
 
-// Flashcard management routes
-router.post('/teacher/:id/add-flashcards', verifyToken, requireTeacherOrAdmin, checkOwnership(), addFlashcardsToExam);
-router.post('/teacher/:id/remove-flashcards', verifyToken, requireTeacherOrAdmin, checkOwnership(), removeFlashcardsFromExam);
+// Question management routes (from question bank)
+router.post('/teacher/:id/add-questions', verifyToken, requireTeacherOrAdmin, checkOwnership(), addQuestionsToExam);
+router.post('/teacher/:id/remove-questions', verifyToken, requireTeacherOrAdmin, checkOwnership(), removeQuestionsFromExam);
 
 // ==================================================
 // 👨‍💼 ADMIN ROUTES (Chỉ Admin)

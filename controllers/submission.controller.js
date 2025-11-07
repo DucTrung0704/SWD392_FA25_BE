@@ -1,6 +1,5 @@
 import Submission from '../models/submission.model.js';
 import Exam from '../models/exam.model.js';
-import Flashcard from '../models/flashcard.model.js';
 
 // Helper function: Shuffle array
 const shuffleArray = (array) => {
@@ -12,65 +11,6 @@ const shuffleArray = (array) => {
     return shuffled;
 };
 
-// Helper function: Generate 4 options tự động từ flashcards
-const generateOptions = (correctFlashcard, allFlashcards) => {
-    // Nếu flashcard đã có options sẵn, dùng luôn
-    if (correctFlashcard.options && correctFlashcard.options.A) {
-        return {
-            options: correctFlashcard.options,
-            correctOption: correctFlashcard.correctOption || 'A'
-        };
-    }
-
-    // Lấy đáp án đúng
-    const correctAnswer = correctFlashcard.answer;
-    
-    // Lấy các đáp án sai từ các flashcards khác
-    const otherFlashcards = allFlashcards.filter(
-        card => card._id.toString() !== correctFlashcard._id.toString() && 
-                card.answer !== correctAnswer // Loại bỏ đáp án trùng với đáp án đúng
-    );
-    
-    // Lấy answers từ các flashcards khác
-    let wrongAnswers = otherFlashcards.map(card => card.answer);
-    
-    // Loại bỏ các đáp án trùng lặp
-    wrongAnswers = [...new Set(wrongAnswers)];
-    
-    // Shuffle và lấy 3 đáp án sai
-    const shuffledWrongAnswers = shuffleArray(wrongAnswers);
-    let selectedWrongAnswers = shuffledWrongAnswers.slice(0, 3);
-    
-    // Nếu không đủ 3 đáp án sai, thêm các đáp án generic hoặc lặp lại
-    while (selectedWrongAnswers.length < 3) {
-        // Tạo đáp án sai generic dựa trên đáp án đúng
-        const wrongAnswer = `Not ${correctAnswer}`;
-        if (!selectedWrongAnswers.includes(wrongAnswer)) {
-            selectedWrongAnswers.push(wrongAnswer);
-        } else {
-            // Nếu vẫn không đủ, thêm các đáp án khác
-            selectedWrongAnswers.push(`Option ${selectedWrongAnswers.length + 1}`);
-        }
-    }
-    
-    // Tạo 4 options: 1 đúng + 3 sai
-    const allOptions = [correctAnswer, ...selectedWrongAnswers];
-    const shuffledOptions = shuffleArray(allOptions);
-    
-    // Xác định vị trí đáp án đúng
-    const correctIndex = shuffledOptions.indexOf(correctAnswer);
-    const correctOption = ['A', 'B', 'C', 'D'][correctIndex];
-    
-    return {
-        options: {
-            A: shuffledOptions[0],
-            B: shuffledOptions[1],
-            C: shuffledOptions[2],
-            D: shuffledOptions[3],
-        },
-        correctOption: correctOption
-    };
-};
 
 // START EXAM (Student) - Tạo submission mới khi student bắt đầu làm bài
 export const startExam = async (req, res) => {
@@ -79,7 +19,8 @@ export const startExam = async (req, res) => {
         const studentId = req.user.id;
 
         // Kiểm tra exam có tồn tại và public không
-        const exam = await Exam.findById(examId).populate('flashcards');
+        const exam = await Exam.findById(examId)
+            .populate('questions');
         if (!exam) {
             return res.status(404).json({ message: 'Exam not found' });
         }
@@ -88,8 +29,8 @@ export const startExam = async (req, res) => {
             return res.status(403).json({ message: 'This exam is not public' });
         }
 
-        if (!exam.flashcards || exam.flashcards.length === 0) {
-            return res.status(400).json({ message: 'This exam has no flashcards' });
+        if (!exam.questions || exam.questions.length === 0) {
+            return res.status(400).json({ message: 'This exam has no questions' });
         }
 
         // Kiểm tra xem student đã có submission in_progress chưa
@@ -99,40 +40,46 @@ export const startExam = async (req, res) => {
             status: 'in_progress'
         });
 
-        // Generate options cho tất cả flashcards nếu chưa có
-        const flashcardsWithOptions = exam.flashcards.map(card => {
-            const generated = generateOptions(card, exam.flashcards);
-            return {
-                ...card.toObject(),
-                generatedOptions: generated.options,
-                generatedCorrectOption: generated.correctOption
-            };
-        });
+        // Xử lý questions: dùng options và correctOption có sẵn
+        const questionsWithOptions = [];
+        for (const question of exam.questions) {
+            // Questions đã có options và correctOption sẵn
+            if (!question.options || !question.correctOption) {
+                return res.status(400).json({ 
+                    message: `Question ${question._id} is missing options or correctOption. Please ensure all questions have complete multiple choice options.` 
+                });
+            }
+            questionsWithOptions.push({
+                ...question.toObject(),
+                generatedOptions: question.options,
+                generatedCorrectOption: question.correctOption
+            });
+        }
 
         if (existingSubmission) {
             // Trả về submission đang có
             await existingSubmission.populate('exam_id', 'title description time_limit total_questions');
             
-            // Trả về exam với flashcards (có options nhưng không có correctOption)
-            const examWithQuestions = {
+            // Trả về exam với questions (có options nhưng không có correctOption)
+            const examWithItems = {
                 _id: exam._id,
                 title: exam.title,
                 description: exam.description,
                 time_limit: exam.time_limit,
                 total_questions: exam.total_questions,
-                flashcards: flashcardsWithOptions.map(card => ({
-                    _id: card._id,
-                    question: card.question,
-                    tag: card.tag,
-                    status: card.status,
-                    options: card.generatedOptions, // Trả về 4 options đã generate, không trả về correctOption để student không thấy đáp án đúng
+                questions: questionsWithOptions.map(item => ({
+                    _id: item._id,
+                    question: item.question,
+                    tag: item.tag,
+                    difficulty: item.difficulty,
+                    options: item.generatedOptions, // Trả về 4 options, không trả về correctOption để student không thấy đáp án đúng
                 }))
             };
             
             return res.json({
                 message: 'You already have an ongoing exam submission',
                 submission: existingSubmission,
-                exam: examWithQuestions
+                exam: examWithItems
             });
         }
 
@@ -149,49 +96,50 @@ export const startExam = async (req, res) => {
         // Populate submission
         await submission.populate('exam_id', 'title description time_limit total_questions');
 
-        // Trả về exam với flashcards (có options đã generate nhưng không có correctOption)
-        const examWithQuestions = {
+        // Trả về exam với questions (có options nhưng không có correctOption)
+        const examWithItems = {
             _id: exam._id,
             title: exam.title,
             description: exam.description,
             time_limit: exam.time_limit,
             total_questions: exam.total_questions,
-            flashcards: flashcardsWithOptions.map(card => ({
-                _id: card._id,
-                question: card.question,
-                tag: card.tag,
-                status: card.status,
-                options: card.generatedOptions, // Trả về 4 options đã generate, không trả về correctOption để student không thấy đáp án đúng
+            questions: questionsWithOptions.map(item => ({
+                _id: item._id,
+                question: item.question,
+                tag: item.tag,
+                difficulty: item.difficulty,
+                options: item.generatedOptions, // Trả về 4 options, không trả về correctOption để student không thấy đáp án đúng
             }))
         };
         
         // Lưu generated options vào submission để dùng khi chấm điểm
-        submission.generatedOptions = flashcardsWithOptions.map(card => ({
-            flashcard_id: card._id,
-            options: card.generatedOptions,
-            correctOption: card.generatedCorrectOption
+        submission.generatedOptions = questionsWithOptions.map(item => ({
+            question_id: item._id,
+            options: item.generatedOptions,
+            correctOption: item.generatedCorrectOption
         }));
         await submission.save();
 
         res.status(201).json({
             message: 'Exam started successfully',
             submission,
-            exam: examWithQuestions
+            exam: examWithItems
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// SUBMIT ANSWER (Student) - Lưu câu trả lời cho một flashcard
+// SUBMIT ANSWER (Student) - Lưu câu trả lời cho một question
 export const submitAnswer = async (req, res) => {
     try {
         const { submissionId } = req.params;
-        const { flashcard_id, selected_option } = req.body;
+        const { question_id, selected_option } = req.body;
         const studentId = req.user.id;
 
-        if (!flashcard_id || !selected_option) {
-            return res.status(400).json({ message: 'flashcard_id and selected_option are required' });
+        // Validate required fields
+        if (!question_id || !selected_option) {
+            return res.status(400).json({ message: 'question_id and selected_option are required' });
         }
 
         // Validate selected_option
@@ -228,42 +176,31 @@ export const submitAnswer = async (req, res) => {
             return res.status(400).json({ message: 'Time limit exceeded. Exam has expired.' });
         }
 
-        // Lấy flashcard để kiểm tra
-        const flashcard = await Flashcard.findById(flashcard_id);
-        if (!flashcard) {
-            return res.status(404).json({ message: 'Flashcard not found' });
+        // Kiểm tra xem question có trong exam không
+        const examQuestions = exam.questions ? exam.questions.map(id => id.toString()) : [];
+        if (!examQuestions.includes(question_id.toString())) {
+            return res.status(400).json({ message: 'This question is not in the exam' });
         }
 
-        // Kiểm tra xem flashcard có trong exam không
-        const examFlashcards = exam.flashcards.map(id => id.toString());
-        if (!examFlashcards.includes(flashcard_id.toString())) {
-            return res.status(400).json({ message: 'This flashcard is not in the exam' });
-        }
-
-        // Lấy correctOption từ generatedOptions hoặc từ flashcard
+        // Lấy correctOption từ generatedOptions
         let correctOption;
         if (submission.generatedOptions && submission.generatedOptions.length > 0) {
-            const generatedOption = submission.generatedOptions.find(
-                opt => opt.flashcard_id.toString() === flashcard_id.toString()
+            const generatedOption = submission.generatedOptions.find(opt => 
+                opt.question_id && opt.question_id.toString() === question_id.toString()
             );
             if (generatedOption) {
                 correctOption = generatedOption.correctOption;
             }
         }
-        
-        // Nếu không có trong generatedOptions, dùng từ flashcard
-        if (!correctOption) {
-            correctOption = flashcard.correctOption;
-        }
 
-        // Nếu vẫn không có, có thể flashcard chưa có options - cần generate lại
+        // Nếu không có trong generatedOptions, cần restart exam
         if (!correctOption) {
             return res.status(400).json({ message: 'Unable to determine correct option. Please restart the exam.' });
         }
 
-        // Kiểm tra xem đã trả lời flashcard này chưa
-        const existingAnswer = submission.answers.find(
-            answer => answer.flashcard_id.toString() === flashcard_id.toString()
+        // Kiểm tra xem đã trả lời question này chưa
+        const existingAnswer = submission.answers.find(answer => 
+            answer.question_id && answer.question_id.toString() === question_id.toString()
         );
 
         const isCorrect = selected_option === correctOption;
@@ -277,7 +214,7 @@ export const submitAnswer = async (req, res) => {
         } else {
             // Thêm câu trả lời mới
             submission.answers.push({
-                flashcard_id,
+                question_id,
                 selected_option,
                 correct_option: correctOption,
                 is_correct: isCorrect,
@@ -320,35 +257,22 @@ export const finishExam = async (req, res) => {
         }
 
         // Lấy thông tin exam để đảm bảo tính điểm chính xác
-        const exam = await Exam.findById(submission.exam_id).populate('flashcards');
+        const exam = await Exam.findById(submission.exam_id).populate('questions');
         if (!exam) {
             return res.status(404).json({ message: 'Exam not found' });
         }
 
-        // Lấy tất cả flashcards một lần để tối ưu hiệu suất
-        const flashcardIds = submission.answers.map(answer => answer.flashcard_id);
-        const flashcards = await Flashcard.find({ _id: { $in: flashcardIds } });
-        const flashcardMap = new Map(flashcards.map(card => [card._id.toString(), card]));
-
         // Đảm bảo tất cả câu trả lời đã được chấm điểm tự động
         // Kiểm tra lại từng câu trả lời để đảm bảo is_correct chính xác
         for (let answer of submission.answers) {
-            // Lấy correctOption từ generatedOptions hoặc từ flashcard
+            // Lấy correctOption từ generatedOptions
             let correctOption;
             if (submission.generatedOptions && submission.generatedOptions.length > 0) {
-                const generatedOption = submission.generatedOptions.find(
-                    opt => opt.flashcard_id.toString() === answer.flashcard_id.toString()
+                const generatedOption = submission.generatedOptions.find(opt => 
+                    opt.question_id && opt.question_id.toString() === answer.question_id.toString()
                 );
                 if (generatedOption) {
                     correctOption = generatedOption.correctOption;
-                }
-            }
-            
-            // Nếu không có trong generatedOptions, dùng từ flashcard
-            if (!correctOption) {
-                const flashcard = flashcardMap.get(answer.flashcard_id.toString());
-                if (flashcard) {
-                    correctOption = flashcard.correctOption;
                 }
             }
             
@@ -385,34 +309,29 @@ export const finishExam = async (req, res) => {
 
         // Populate để trả về đầy đủ thông tin
         await submission.populate('exam_id', 'title description time_limit');
-        await submission.populate('answers.flashcard_id', 'question answer options correctOption tag status');
+        await submission.populate('answers.question_id', 'question answer tag difficulty');
 
         // Tạo danh sách chi tiết từng câu hỏi và kết quả
         const detailedResults = submission.answers.map(answer => {
-            // Lấy options từ generatedOptions hoặc từ flashcard
+            // Lấy options từ generatedOptions
             let options;
             if (submission.generatedOptions && submission.generatedOptions.length > 0) {
-                const generatedOption = submission.generatedOptions.find(
-                    opt => opt.flashcard_id.toString() === answer.flashcard_id._id.toString()
+                const generatedOption = submission.generatedOptions.find(opt => 
+                    opt.question_id && opt.question_id.toString() === answer.question_id._id.toString()
                 );
                 if (generatedOption) {
                     options = generatedOption.options;
                 }
             }
             
-            // Nếu không có trong generatedOptions, dùng từ flashcard
-            if (!options && answer.flashcard_id.options && answer.flashcard_id.options.A) {
-                options = answer.flashcard_id.options;
-            }
-            
             return {
-                flashcard_id: answer.flashcard_id._id,
-                question: answer.flashcard_id.question,
+                question_id: answer.question_id._id,
+                question: answer.question_id.question,
                 options: options || {},
                 selected_option: answer.selected_option,
                 correct_option: answer.correct_option,
                 is_correct: answer.is_correct,
-                correct_answer_text: options ? options[answer.correct_option] : answer.flashcard_id.answer,
+                correct_answer_text: options ? options[answer.correct_option] : answer.question_id.answer,
                 selected_answer_text: options ? options[answer.selected_option] : answer.selected_option,
             };
         });
@@ -446,7 +365,7 @@ export const getSubmission = async (req, res) => {
 
         const submission = await Submission.findById(submissionId)
             .populate('exam_id', 'title description time_limit total_questions created_by')
-            .populate('answers.flashcard_id', 'question answer options correctOption tag status')
+            .populate('answers.question_id', 'question answer tag difficulty')
             .populate('student_id', 'name email');
 
         if (!submission) {
@@ -506,7 +425,7 @@ export const getMyCompletedTests = async (req, res) => {
 
         const submissions = await Submission.find(query)
             .populate('exam_id', 'title description time_limit total_questions created_by')
-            .populate('answers.flashcard_id', 'question answer options correctOption tag status')
+            .populate('answers.question_id', 'question answer tag difficulty')
             .sort({ submitted_at: -1 });
 
         // Tính toán thống kê
@@ -538,31 +457,28 @@ export const getMyCompletedTests = async (req, res) => {
             started_at: submission.started_at,
             // Chi tiết từng câu hỏi
             answers: submission.answers.map(answer => {
-                // Lấy options từ generatedOptions hoặc từ flashcard
+                // Lấy options từ generatedOptions
                 let options = {};
                 if (submission.generatedOptions && submission.generatedOptions.length > 0) {
-                    const generatedOption = submission.generatedOptions.find(
-                        opt => opt.flashcard_id.toString() === answer.flashcard_id._id.toString()
+                    const generatedOption = submission.generatedOptions.find(opt => 
+                        opt.question_id && opt.question_id.toString() === answer.question_id._id.toString()
                     );
                     if (generatedOption) {
                         options = generatedOption.options;
                     }
                 }
                 
-                if (!options || Object.keys(options).length === 0) {
-                    options = answer.flashcard_id.options || {};
-                }
-
                 return {
-                    flashcard_id: answer.flashcard_id._id,
-                    question: answer.flashcard_id.question,
-                    tag: answer.flashcard_id.tag,
+                    question_id: answer.question_id._id,
+                    question: answer.question_id.question,
+                    tag: answer.question_id.tag,
+                    difficulty: answer.question_id.difficulty,
                     options: options,
                     selected_option: answer.selected_option,
                     correct_option: answer.correct_option,
                     is_correct: answer.is_correct,
                     selected_answer_text: options[answer.selected_option] || answer.selected_option,
-                    correct_answer_text: options[answer.correct_option] || answer.flashcard_id.answer,
+                    correct_answer_text: options[answer.correct_option] || answer.question_id.answer,
                 };
             })
         }));
@@ -589,7 +505,7 @@ export const getSubmissionByExam = async (req, res) => {
             student_id: studentId
         })
         .populate('exam_id', 'title description time_limit total_questions')
-        .populate('answers.flashcard_id', 'question answer options correctOption tag status')
+        .populate('answers.question_id', 'question answer tag difficulty')
         .sort({ started_at: -1 });
 
         if (!submission) {
