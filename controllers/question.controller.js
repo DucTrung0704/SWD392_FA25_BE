@@ -102,16 +102,8 @@ export const createQuestion = async (req, res) => {
 export const getAllQuestions = async (req, res) => {
     try {
         const { tag, difficulty, isActive, search } = req.query;
-        const teacherId = req.user.id;
-        const userRole = req.user.role;
-
         // Build query
         const query = {};
-
-        // Teacher chỉ thấy questions của mình, Admin thấy tất cả
-        if (userRole !== 'Admin') {
-            query.created_by = teacherId;
-        }
 
         // Filter by tag
         if (tag) {
@@ -159,19 +151,12 @@ export const getAllQuestions = async (req, res) => {
 export const getQuestionById = async (req, res) => {
     try {
         const { id } = req.params;
-        const teacherId = req.user.id;
-        const userRole = req.user.role;
 
         const question = await Question.findById(id)
             .populate('created_by', 'name email role');
 
         if (!question) {
             return res.status(404).json({ message: 'Question not found' });
-        }
-
-        // Teacher chỉ có thể xem questions của mình, Admin có thể xem tất cả
-        if (userRole !== 'Admin' && question.created_by._id.toString() !== teacherId) {
-            return res.status(403).json({ message: 'You do not have permission to view this question' });
         }
 
         res.json(question);
@@ -240,7 +225,6 @@ export const updateQuestion = async (req, res) => {
         const { id } = req.params;
         const { question, answer, options, correctOption, tag, difficulty, explanation, isActive } = req.body;
         const teacherId = req.user.id;
-        const userRole = req.user.role;
 
         const questionDoc = await Question.findById(id);
 
@@ -249,7 +233,7 @@ export const updateQuestion = async (req, res) => {
         }
 
         // Chỉ người tạo hoặc admin mới được sửa
-        if (questionDoc.created_by.toString() !== teacherId && userRole !== 'Admin') {
+        if (questionDoc.created_by.toString() !== teacherId) {
             return res.status(403).json({ message: 'You do not have permission to edit this question' });
         }
 
@@ -327,7 +311,6 @@ export const deleteQuestion = async (req, res) => {
     try {
         const { id } = req.params;
         const teacherId = req.user.id;
-        const userRole = req.user.role;
 
         const question = await Question.findById(id);
 
@@ -336,7 +319,7 @@ export const deleteQuestion = async (req, res) => {
         }
 
         // Chỉ người tạo hoặc admin mới được xóa
-        if (question.created_by.toString() !== teacherId && userRole !== 'Admin') {
+        if (question.created_by.toString() !== teacherId) {
             return res.status(403).json({ message: 'You do not have permission to delete this question' });
         }
 
@@ -356,7 +339,6 @@ export const bulkDeleteQuestions = async (req, res) => {
     try {
         const { question_ids } = req.body;
         const teacherId = req.user.id;
-        const userRole = req.user.role;
 
         if (!question_ids || !Array.isArray(question_ids) || question_ids.length === 0) {
             return res.status(400).json({ message: 'question_ids must be a non-empty array' });
@@ -366,9 +348,7 @@ export const bulkDeleteQuestions = async (req, res) => {
         const query = { _id: { $in: question_ids } };
 
         // Teacher chỉ có thể xóa questions của mình
-        if (userRole !== 'Admin') {
-            query.created_by = teacherId;
-        }
+        query.created_by = teacherId;
 
         const result = await Question.deleteMany(query);
 

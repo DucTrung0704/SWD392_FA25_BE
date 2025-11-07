@@ -2,8 +2,8 @@
  * @swagger
  * /api/question/teacher/create:
  *   post:
- *     summary: Create a new question in question bank (Teacher/Admin only)
- *     description: Tạo câu hỏi mới trong question bank. Questions phải có đầy đủ options (A, B, C, D) và correctOption.
+ *     summary: Create a new question in question bank (Teacher only)
+ *     description: Tạo câu hỏi mới trong question bank. Nếu khai báo options (A, B, C, D) thì bắt buộc phải có correctOption và ngược lại.
  *     tags: [Question Bank]
  *     security:
  *       - bearerAuth: []
@@ -68,14 +68,16 @@
  *         description: Validation error
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Teacher role required
  */
 
 /**
  * @swagger
  * /api/question/teacher/all:
  *   get:
- *     summary: Get all questions (Teacher/Admin only)
- *     description: Lấy tất cả questions. Teacher chỉ thấy questions của mình, Admin thấy tất cả. Có thể filter theo tag, difficulty, isActive, search.
+ *     summary: Get all questions (Teacher only)
+ *     description: Lấy tất cả questions trong question bank. Teacher có thể xem toàn bộ question và filter theo tag, difficulty, isActive, search.
  *     tags: [Question Bank]
  *     security:
  *       - bearerAuth: []
@@ -118,13 +120,17 @@
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Question'
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Teacher role required
  */
 
 /**
  * @swagger
  * /api/question/teacher/my-questions:
  *   get:
- *     summary: Get my questions (Teacher/Admin only)
+ *     summary: Get my questions (Teacher only)
  *     description: Lấy tất cả questions của teacher hiện tại. Có thể filter theo tag, difficulty, isActive, search.
  *     tags: [Question Bank]
  *     security:
@@ -168,13 +174,15 @@
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Question'
+ *       401:
+ *         description: Unauthorized
  */
 
 /**
  * @swagger
  * /api/question/teacher/{id}:
  *   get:
- *     summary: Get question by ID (Teacher/Admin only)
+ *     summary: Get question by ID (Teacher only)
  *     tags: [Question Bank]
  *     security:
  *       - bearerAuth: []
@@ -192,8 +200,8 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Question'
- *       403:
- *         description: Access denied
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: Question not found
  */
@@ -202,7 +210,7 @@
  * @swagger
  * /api/question/teacher/update/{id}:
  *   put:
- *     summary: Update question (Teacher/Admin only)
+ *     summary: Update question (Teacher only)
  *     tags: [Question Bank]
  *     security:
  *       - bearerAuth: []
@@ -256,8 +264,10 @@
  *                   type: string
  *                 question:
  *                   $ref: '#/components/schemas/Question'
+ *       401:
+ *         description: Unauthorized
  *       403:
- *         description: Access denied
+ *         description: Access denied - chỉ người tạo mới có thể chỉnh sửa
  *       404:
  *         description: Question not found
  */
@@ -266,7 +276,7 @@
  * @swagger
  * /api/question/teacher/delete/{id}:
  *   delete:
- *     summary: Delete question (Teacher/Admin only)
+ *     summary: Delete question (Teacher only)
  *     tags: [Question Bank]
  *     security:
  *       - bearerAuth: []
@@ -280,8 +290,10 @@
  *     responses:
  *       200:
  *         description: Question deleted successfully
+ *       401:
+ *         description: Unauthorized
  *       403:
- *         description: Access denied
+ *         description: Access denied - chỉ người tạo mới có thể xóa
  *       404:
  *         description: Question not found
  */
@@ -290,7 +302,7 @@
  * @swagger
  * /api/question/teacher/bulk-delete:
  *   post:
- *     summary: Bulk delete questions (Teacher/Admin only)
+ *     summary: Bulk delete questions (Teacher only)
  *     description: Xóa nhiều questions cùng lúc
  *     tags: [Question Bank]
  *     security:
@@ -323,53 +335,10 @@
  *                   type: number
  *       400:
  *         description: Invalid input
- */
-
-/**
- * @swagger
- * /api/question/admin/all:
- *   get:
- *     summary: Get all questions (Admin only)
- *     tags: [Question Bank]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of all questions
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 count:
- *                   type: number
- *                 questions:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Question'
- */
-
-/**
- * @swagger
- * /api/question/admin/delete/{id}:
- *   delete:
- *     summary: Delete question (Admin only)
- *     tags: [Question Bank]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Question ID
- *     responses:
- *       200:
- *         description: Question deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Access denied - chỉ được xóa các question của chính mình
  *       404:
- *         description: Question not found
+ *         description: No questions deleted
  */
-
