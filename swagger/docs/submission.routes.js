@@ -3,7 +3,7 @@
  * /api/submission/student/start/{examId}:
  *   post:
  *     summary: Start an exam (Student)
- *     description: Bắt đầu làm bài. Hệ thống tự động generate 4 options (A, B, C, D) cho mỗi flashcard từ các flashcards khác trong exam.
+ *     description: Bắt đầu làm bài. Exam sử dụng questions từ question bank với options và correctOption có sẵn.
  *     tags: [Submissions]
  *     security:
  *       - bearerAuth: []
@@ -29,7 +29,17 @@
  *                 exam:
  *                   type: object
  *                   properties:
- *                     flashcards:
+ *                     _id:
+ *                       type: string
+ *                     title:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                     time_limit:
+ *                       type: number
+ *                     total_questions:
+ *                       type: number
+ *                     questions:
  *                       type: array
  *                       items:
  *                         type: object
@@ -38,6 +48,10 @@
  *                             type: string
  *                           question:
  *                             type: string
+ *                           tag:
+ *                             type: string
+ *                           difficulty:
+ *                             type: string
  *                           options:
  *                             type: object
  *                             properties:
@@ -45,6 +59,8 @@
  *                               B: { type: string }
  *                               C: { type: string }
  *                               D: { type: string }
+ *       400:
+ *         description: Exam has no questions or questions missing options
  *       403:
  *         description: Exam is not public
  *       404:
@@ -55,8 +71,8 @@
  * @swagger
  * /api/submission/student/submit-answer/{submissionId}:
  *   post:
- *     summary: Submit answer for a flashcard (Student)
- *     description: Nộp câu trả lời cho một flashcard. selected_option phải là A, B, C, hoặc D.
+ *     summary: Submit answer for a question (Student)
+ *     description: Nộp câu trả lời cho một question. selected_option phải là A, B, C, hoặc D.
  *     tags: [Submissions]
  *     security:
  *       - bearerAuth: []
@@ -74,12 +90,12 @@
  *           schema:
  *             type: object
  *             required:
- *               - flashcard_id
+ *               - question_id
  *               - selected_option
  *             properties:
- *               flashcard_id:
+ *               question_id:
  *                 type: string
- *                 description: Flashcard ID
+ *                 description: Question ID from question bank
  *               selected_option:
  *                 type: string
  *                 enum: [A, B, C, D]
@@ -148,7 +164,7 @@
  *                   items:
  *                     type: object
  *                     properties:
- *                       flashcard_id:
+ *                       question_id:
  *                         type: string
  *                       question:
  *                         type: string
@@ -160,6 +176,10 @@
  *                         type: string
  *                       is_correct:
  *                         type: boolean
+ *                       correct_answer_text:
+ *                         type: string
+ *                       selected_answer_text:
+ *                         type: string
  */
 
 /**
@@ -290,11 +310,13 @@
  *                         items:
  *                           type: object
  *                           properties:
- *                             flashcard_id:
+ *                             question_id:
  *                               type: string
  *                             question:
  *                               type: string
  *                             tag:
+ *                               type: string
+ *                             difficulty:
  *                               type: string
  *                             options:
  *                               type: object

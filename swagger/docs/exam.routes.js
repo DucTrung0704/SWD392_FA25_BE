@@ -54,6 +54,7 @@
  * /api/exam/teacher/create:
  *   post:
  *     summary: Create a new exam (Teacher/Admin only)
+ *     description: Tạo exam mới từ questions trong question bank. Questions phải có đầy đủ options và correctOption.
  *     tags: [Exams]
  *     security:
  *       - bearerAuth: []
@@ -65,7 +66,7 @@
  *             type: object
  *             required:
  *               - title
- *               - flashcards
+ *               - questions
  *             properties:
  *               title:
  *                 type: string
@@ -73,11 +74,11 @@
  *               description:
  *                 type: string
  *                 description: Exam description
- *               flashcards:
+ *               questions:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Array of flashcard IDs
+ *                 description: Array of question IDs from question bank
  *               time_limit:
  *                 type: number
  *                 default: 60
@@ -98,6 +99,10 @@
  *                   type: string
  *                 exam:
  *                   $ref: '#/components/schemas/Exam'
+ *       400:
+ *         description: Validation error - questions array is required or invalid question IDs
+ *       403:
+ *         description: Access denied - can only use questions from your question bank
  */
 
 /**
@@ -183,9 +188,10 @@
 
 /**
  * @swagger
- * /api/exam/teacher/{id}/add-flashcards:
+ * /api/exam/teacher/{id}/add-questions:
  *   post:
- *     summary: Add flashcards to exam (Teacher/Admin only)
+ *     summary: Add questions to exam (Teacher/Admin only)
+ *     description: Thêm questions từ question bank vào exam
  *     tags: [Exams]
  *     security:
  *       - bearerAuth: []
@@ -203,23 +209,39 @@
  *           schema:
  *             type: object
  *             required:
- *               - flashcard_ids
+ *               - question_ids
  *             properties:
- *               flashcard_ids:
+ *               question_ids:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Array of flashcard IDs to add
+ *                 description: Array of question IDs from question bank to add
  *     responses:
  *       200:
- *         description: Flashcards added successfully
+ *         description: Questions added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 exam:
+ *                   $ref: '#/components/schemas/Exam'
+ *                 added_count:
+ *                   type: number
+ *       400:
+ *         description: Invalid question IDs or questions already in exam
+ *       403:
+ *         description: Access denied - can only use questions from your question bank
  */
 
 /**
  * @swagger
- * /api/exam/teacher/{id}/remove-flashcards:
+ * /api/exam/teacher/{id}/remove-questions:
  *   post:
- *     summary: Remove flashcards from exam (Teacher/Admin only)
+ *     summary: Remove questions from exam (Teacher/Admin only)
+ *     description: Xóa questions khỏi exam
  *     tags: [Exams]
  *     security:
  *       - bearerAuth: []
@@ -237,16 +259,29 @@
  *           schema:
  *             type: object
  *             required:
- *               - flashcard_ids
+ *               - question_ids
  *             properties:
- *               flashcard_ids:
+ *               question_ids:
  *                 type: array
  *                 items:
  *                   type: string
- *                 description: Array of flashcard IDs to remove
+ *                 description: Array of question IDs to remove
  *     responses:
  *       200:
- *         description: Flashcards removed successfully
+ *         description: Questions removed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 exam:
+ *                   $ref: '#/components/schemas/Exam'
+ *                 removed_count:
+ *                   type: number
+ *       400:
+ *         description: No questions were removed
  */
 
 

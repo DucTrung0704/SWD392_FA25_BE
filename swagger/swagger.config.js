@@ -6,7 +6,7 @@ const options = {
     info: {
       title: 'MathFlash API',
       version: '1.0.0',
-      description: 'A comprehensive API for MathFlash application - a flashcard learning platform',
+      description: 'A comprehensive API for MathFlash application - a learning platform with question bank and exam system',
       contact: {
         name: 'MathFlash Team',
         email: 'support@mathflash.com'
@@ -123,24 +123,9 @@ const options = {
               type: 'string',
               description: 'Answer text'
             },
-            options: {
-              type: 'object',
-              description: 'Multiple choice options (optional - auto-generated when taking exam)',
-              properties: {
-                A: { type: 'string' },
-                B: { type: 'string' },
-                C: { type: 'string' },
-                D: { type: 'string' }
-              }
-            },
-            correctOption: {
-              type: 'string',
-              enum: ['A', 'B', 'C', 'D'],
-              description: 'Correct option (optional - auto-generated when taking exam)'
-            },
             tag: {
               type: 'string',
-              enum: ['geometry', 'algebra', 'probability'],
+              enum: ['geometry', 'algebra', 'probability', 'calculus', 'statistics', 'other'],
               description: 'Flashcard category tag'
             },
             status: {
@@ -152,6 +137,70 @@ const options = {
               type: 'string',
               format: 'date-time',
               description: 'Creation date'
+            }
+          }
+        },
+        Question: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'Question ID'
+            },
+            question: {
+              type: 'string',
+              description: 'Question text'
+            },
+            answer: {
+              type: 'string',
+              description: 'Answer text'
+            },
+            options: {
+              type: 'object',
+              description: 'Multiple choice options (A, B, C, D)',
+              properties: {
+                A: { type: 'string' },
+                B: { type: 'string' },
+                C: { type: 'string' },
+                D: { type: 'string' }
+              }
+            },
+            correctOption: {
+              type: 'string',
+              enum: ['A', 'B', 'C', 'D'],
+              description: 'Correct option'
+            },
+            tag: {
+              type: 'string',
+              enum: ['geometry', 'algebra', 'probability', 'calculus', 'statistics', 'other'],
+              description: 'Question category tag'
+            },
+            difficulty: {
+              type: 'string',
+              enum: ['easy', 'medium', 'hard'],
+              description: 'Difficulty level'
+            },
+            explanation: {
+              type: 'string',
+              description: 'Explanation for the answer (optional)'
+            },
+            created_by: {
+              type: 'string',
+              description: 'Creator user ID (Teacher)'
+            },
+            isActive: {
+              type: 'boolean',
+              description: 'Whether question is active'
+            },
+            created_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Creation date'
+            },
+            updated_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Last update date'
             }
           }
         },
@@ -170,10 +219,10 @@ const options = {
               type: 'string',
               description: 'Exam description'
             },
-            flashcards: {
+            questions: {
               type: 'array',
               items: { type: 'string' },
-              description: 'Array of flashcard IDs'
+              description: 'Array of question IDs from question bank'
             },
             time_limit: {
               type: 'number',
@@ -195,6 +244,11 @@ const options = {
               type: 'string',
               format: 'date-time',
               description: 'Creation date'
+            },
+            updated_at: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Last update date'
             }
           }
         },
@@ -218,7 +272,10 @@ const options = {
               items: {
                 type: 'object',
                 properties: {
-                  flashcard_id: { type: 'string' },
+                  question_id: { 
+                    type: 'string',
+                    description: 'Question ID from question bank'
+                  },
                   selected_option: {
                     type: 'string',
                     enum: ['A', 'B', 'C', 'D']
