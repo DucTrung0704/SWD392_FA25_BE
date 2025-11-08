@@ -24,12 +24,6 @@ router.post('/student/start/:examId', verifyToken, startExam);
 // Nộp câu trả lời
 router.post('/student/submit-answer/:submissionId', verifyToken, submitAnswer);
 
-// Hoàn thành và nộp bài
-router.post('/student/finish/:submissionId', verifyToken, finishExam);
-
-// Xem chi tiết submission
-router.get('/student/:submissionId', verifyToken, getSubmission);
-
 // Xem lịch sử làm bài của mình
 router.get('/student/my-submissions', verifyToken, getMySubmissions);
 
@@ -38,6 +32,12 @@ router.get('/student/completed-tests', verifyToken, allowRoles('Student'), getMy
 
 // Xem submission của một exam cụ thể
 router.get('/student/exam/:examId', verifyToken, getSubmissionByExam);
+
+// Hoàn thành và nộp bài
+router.post('/student/finish/:submissionId', verifyToken, finishExam);
+
+// Xem chi tiết submission
+router.get('/student/:submissionId', verifyToken, getSubmission);
 
 // TEACHER ROUTES (Teacher có thể xem submissions của students)
 // Teacher/Admin có thể xem tất cả submissions với filter options
