@@ -313,11 +313,14 @@ export const finishExam = async (req, res) => {
 
         // Tạo danh sách chi tiết từng câu hỏi và kết quả
         const detailedResults = submission.answers.map(answer => {
+            const questionDoc = answer.question_id;
+            const questionId = questionDoc?._id?.toString();
+
             // Lấy options từ generatedOptions
             let options;
             if (submission.generatedOptions && submission.generatedOptions.length > 0) {
                 const generatedOption = submission.generatedOptions.find(opt => 
-                    opt.question_id && opt.question_id.toString() === answer.question_id._id.toString()
+                    opt.question_id && questionId && opt.question_id.toString() === questionId
                 );
                 if (generatedOption) {
                     options = generatedOption.options;
@@ -325,13 +328,13 @@ export const finishExam = async (req, res) => {
             }
             
             return {
-                question_id: answer.question_id._id,
-                question: answer.question_id.question,
+                question_id: questionId || null,
+                question: questionDoc?.question || 'Question is no longer available',
                 options: options || {},
                 selected_option: answer.selected_option,
                 correct_option: answer.correct_option,
                 is_correct: answer.is_correct,
-                correct_answer_text: options ? options[answer.correct_option] : answer.question_id.answer,
+                correct_answer_text: options ? options[answer.correct_option] : questionDoc?.answer || null,
                 selected_answer_text: options ? options[answer.selected_option] : answer.selected_option,
             };
         });
@@ -439,49 +442,55 @@ export const getMyCompletedTests = async (req, res) => {
         };
 
         // Format kết quả để dễ đọc hơn
-        const formattedResults = submissions.map(submission => ({
-            _id: submission._id,
-            exam: {
-                _id: submission.exam_id._id,
-                title: submission.exam_id.title,
-                description: submission.exam_id.description,
-                time_limit: submission.exam_id.time_limit,
-                total_questions: submission.exam_id.total_questions,
-            },
-            score: submission.score,
-            total_questions: submission.total_questions,
-            correct_answers: submission.correct_answers,
-            incorrect_answers: submission.total_questions - submission.correct_answers,
-            time_spent: submission.time_spent,
-            submitted_at: submission.submitted_at,
-            started_at: submission.started_at,
-            // Chi tiết từng câu hỏi
-            answers: submission.answers.map(answer => {
-                // Lấy options từ generatedOptions
-                let options = {};
-                if (submission.generatedOptions && submission.generatedOptions.length > 0) {
-                    const generatedOption = submission.generatedOptions.find(opt => 
-                        opt.question_id && opt.question_id.toString() === answer.question_id._id.toString()
-                    );
-                    if (generatedOption) {
-                        options = generatedOption.options;
+        const formattedResults = submissions.map(submission => {
+            const examDoc = submission.exam_id;
+            return {
+                _id: submission._id,
+                exam: examDoc ? {
+                    _id: examDoc._id,
+                    title: examDoc.title,
+                    description: examDoc.description,
+                    time_limit: examDoc.time_limit,
+                    total_questions: examDoc.total_questions,
+                } : null,
+                score: submission.score,
+                total_questions: submission.total_questions,
+                correct_answers: submission.correct_answers,
+                incorrect_answers: submission.total_questions - submission.correct_answers,
+                time_spent: submission.time_spent,
+                submitted_at: submission.submitted_at,
+                started_at: submission.started_at,
+                // Chi tiết từng câu hỏi
+                answers: submission.answers.map(answer => {
+                    const questionDoc = answer.question_id;
+                    const questionId = questionDoc?._id?.toString();
+
+                    // Lấy options từ generatedOptions
+                    let options = {};
+                    if (submission.generatedOptions && submission.generatedOptions.length > 0 && questionId) {
+                        const generatedOption = submission.generatedOptions.find(opt => 
+                            opt.question_id && opt.question_id.toString() === questionId
+                        );
+                        if (generatedOption) {
+                            options = generatedOption.options;
+                        }
                     }
-                }
-                
-                return {
-                    question_id: answer.question_id._id,
-                    question: answer.question_id.question,
-                    tag: answer.question_id.tag,
-                    difficulty: answer.question_id.difficulty,
-                    options: options,
-                    selected_option: answer.selected_option,
-                    correct_option: answer.correct_option,
-                    is_correct: answer.is_correct,
-                    selected_answer_text: options[answer.selected_option] || answer.selected_option,
-                    correct_answer_text: options[answer.correct_option] || answer.question_id.answer,
-                };
-            })
-        }));
+                    
+                    return {
+                        question_id: questionId || null,
+                        question: questionDoc?.question || 'Question is no longer available',
+                        tag: questionDoc?.tag || null,
+                        difficulty: questionDoc?.difficulty || null,
+                        options: options,
+                        selected_option: answer.selected_option,
+                        correct_option: answer.correct_option,
+                        is_correct: answer.is_correct,
+                        selected_answer_text: options[answer.selected_option] || answer.selected_option,
+                        correct_answer_text: options[answer.correct_option] || questionDoc?.answer || null,
+                    };
+                })
+            };
+        });
 
         res.json({
             message: 'My completed tests retrieved successfully',
