@@ -224,10 +224,25 @@ export const submitAnswer = async (req, res) => {
 
         await submission.save();
 
+        // Tính điểm tạm thời để student biết điểm hiện tại
+        const currentCorrectAnswers = submission.answers.filter(answer => answer.is_correct === true).length;
+        const totalQuestions = submission.total_questions || 0;
+        const currentScore = totalQuestions > 0 
+            ? Math.round((currentCorrectAnswers / totalQuestions) * 100 * 100) / 100
+            : 0;
+
         res.json({
-            message: 'Answer submitted successfully',
+            message: 'Answer submitted and automatically graded',
             submission: await Submission.findById(submissionId).populate('exam_id'),
-            is_correct: isCorrect
+            grading_result: {
+                is_correct: isCorrect,
+                correct_option: correctOption,
+                selected_option: selected_option,
+                current_score: currentScore,
+                current_correct_answers: currentCorrectAnswers,
+                total_questions: totalQuestions,
+                answered_questions: submission.answers.length
+            }
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -262,6 +277,8 @@ export const finishExam = async (req, res) => {
             return res.status(404).json({ message: 'Exam not found' });
         }
 
+        const totalQuestions = exam.total_questions || submission.total_questions || exam.questions.length;
+        
         // Đảm bảo tất cả câu trả lời đã được chấm điểm tự động
         // Kiểm tra lại từng câu trả lời để đảm bảo is_correct chính xác
         for (let answer of submission.answers) {
@@ -280,14 +297,21 @@ export const finishExam = async (req, res) => {
             if (correctOption) {
                 answer.is_correct = answer.selected_option === correctOption;
                 answer.correct_option = correctOption;
+            } else {
+                // Nếu không tìm thấy correctOption, đánh dấu là sai
+                answer.is_correct = false;
             }
         }
 
         // Tính điểm tự động
-        const correctAnswers = submission.answers.filter(answer => answer.is_correct).length;
-        const totalQuestions = exam.total_questions || submission.total_questions || submission.answers.length;
+        // Số câu đúng = số câu đã trả lời đúng
+        // Số câu sai = số câu đã trả lời sai + số câu chưa trả lời (tự động tính là sai)
+        const correctAnswers = submission.answers.filter(answer => answer.is_correct === true).length;
         const answeredQuestions = submission.answers.length;
         const unansweredQuestions = totalQuestions - answeredQuestions;
+        
+        // Điểm số = (số câu đúng / tổng số câu) * 100
+        // Câu chưa trả lời tự động được tính là sai (0 điểm)
         
         // Tính điểm: (số câu đúng / tổng số câu) * 100, làm tròn 2 chữ số thập phân
         const score = totalQuestions > 0 

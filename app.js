@@ -78,6 +78,9 @@ import submissionRoutes from './routes/submission.routes.js';
 import classRoutes from './routes/class.routes.js';
 import questionRoutes from './routes/question.routes.js';
 
+// AI routes
+import aiRoutes from './routes/ai.routes.js';
+
 // ==================================================
 // ✅ 6️⃣  Gắn routes vào app
 // ==================================================
@@ -88,6 +91,7 @@ app.use('/api/exam', examRoutes);
 app.use('/api/submission', submissionRoutes);
 app.use('/api/class', classRoutes);
 app.use('/api/question', questionRoutes);
+app.use('/api/ai', aiRoutes);
 
 // ==================================================
 // ✅ 8️⃣  Swagger Documentation
