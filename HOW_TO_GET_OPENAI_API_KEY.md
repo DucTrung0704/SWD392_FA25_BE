@@ -32,10 +32,29 @@ Key sẽ có dạng: `sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
 ## 📋 Bước 4: Thêm vào project
 
 ### Backend (.env file)
-```env
-OPENAI_API_KEY=sk-proj-your-actual-key-here
-OPENAI_MODEL=gpt-3.5-turbo
-```
+
+1. **Copy file template** (nếu chưa có file `.env`):
+   ```bash
+   # Copy từ .env.example (nếu có)
+   cp .env.example .env
+   ```
+
+2. **Tạo file `.env`** trong thư mục `SWD392_FA25_BE` với nội dung:
+   ```env
+   # Database
+   MONGODB_URI=mongodb://localhost:27017/flashlearn
+   
+   # JWT
+   JWT_SECRET=your-super-secret-jwt-key
+   
+   # Server
+   PORT=3000
+   NODE_ENV=development
+   
+   # OpenAI API (thêm vào đây)
+   OPENAI_API_KEY=sk-proj-your-actual-key-here
+   OPENAI_MODEL=gpt-3.5-turbo
+   ```
 
 ### Ví dụ:
 ```env
@@ -83,8 +102,10 @@ npm run dev
 ⚠️ **QUAN TRỌNG**:
 - ❌ **KHÔNG** commit API key lên Git
 - ❌ **KHÔNG** chia sẻ key với người khác
-- ✅ Thêm `.env` vào `.gitignore`
+- ✅ File `.env` đã được thêm vào `.gitignore` (sẽ không bị commit)
 - ✅ Sử dụng environment variables
+- ✅ Mỗi thành viên trong nhóm tự tạo file `.env` riêng của mình
+- ✅ Code AI (routes, controllers) có thể push lên Git an toàn
 
 ## 🧪 Test API Key
 

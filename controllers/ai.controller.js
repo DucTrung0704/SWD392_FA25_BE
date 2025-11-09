@@ -352,6 +352,199 @@ Each flashcard should have a clear question/term on the front and an informative
 };
 
 /**
+ * Validate/Review a question using AI
+ * POST /api/ai/validate-question
+ */
+export const validateQuestion = async (req, res) => {
+  try {
+    // Check if OpenAI API key is configured
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(503).json({
+        success: false,
+        message: 'AI service is not configured. Please set OPENAI_API_KEY in .env file.'
+      });
+    }
+
+    // Dynamic import to avoid errors if package not installed
+    let OpenAI;
+    let openai;
+    try {
+      const openaiModule = await import('openai');
+      OpenAI = openaiModule.default;
+      openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY
+      });
+    } catch (importError) {
+      return res.status(503).json({
+        success: false,
+        message: 'OpenAI package not installed. Please run: npm install openai'
+      });
+    }
+
+    const { question, options, correctOption, answer, tag, difficulty, subject, explanation } = req.body;
+
+    // Validate input
+    if (!question || !options || !correctOption) {
+      return res.status(400).json({
+        success: false,
+        message: 'Question, options, and correctOption are required'
+      });
+    }
+
+    // Create prompt for AI to validate the question
+    const systemPrompt = `You are an expert educator reviewing multiple-choice questions. 
+Your task is to evaluate the quality, clarity, and educational value of a question.
+
+IMPORTANT: You must carefully check if the marked correct answer is actually correct based on the question content. If the answer is wrong, you MUST clearly state this.
+
+Analyze the question and provide feedback in JSON format:
+{
+  "isValid": true/false,
+  "overallScore": 0-100,
+  "feedback": {
+    "clarity": "Is the question clear and unambiguous?",
+    "difficulty": "Does the difficulty match the stated level?",
+    "options": "Are all options plausible? Are distractors effective?",
+    "correctness": "CRITICAL: Is the marked correct answer actually correct? If NO, clearly state 'Đáp án không đúng' or 'The answer is incorrect'. If YES, state 'Đáp án đúng' or 'The answer is correct'. Be specific about why.",
+    "educationalValue": "Does this question test understanding effectively?"
+  },
+  "suggestions": [
+    "Specific suggestions for improvement"
+  ],
+  "strengths": [
+    "What the question does well"
+  ],
+  "issues": [
+    "Any problems or concerns. If the answer is wrong, include 'Đáp án được đánh dấu không đúng' or 'The marked answer is incorrect'"
+  ],
+  "recommendedDifficulty": "easy/medium/hard",
+  "isReady": true/false,
+  "isAnswerCorrect": true/false,
+  "correctOption": "A/B/C/D - The actual correct option based on the question. Return the option letter (A, B, C, or D) that is the correct answer. If the marked answer is correct, return the same option. If wrong, return the actual correct option."
+}
+
+Be thorough but constructive. Provide specific, actionable feedback. If the answer is wrong, make it VERY clear in the correctness field and set isAnswerCorrect to false.`;
+
+    const userPrompt = `Please review this multiple-choice question:
+
+Question: ${question}
+
+Options:
+A: ${options.A || ''}
+B: ${options.B || ''}
+C: ${options.C || ''}
+D: ${options.D || ''}
+
+Correct Answer: ${correctOption}
+${answer ? `Answer Text: ${answer}` : ''}
+${tag ? `Tag: ${tag}` : ''}
+${difficulty ? `Stated Difficulty: ${difficulty}` : ''}
+${subject ? `Subject: ${subject}` : ''}
+${explanation ? `Explanation: ${explanation}` : ''}
+
+Please evaluate:
+1. Is the question clear and well-written?
+2. Are all options (A, B, C, D) plausible?
+3. Is the marked correct answer (${correctOption}) actually correct? If not, which option (A, B, C, or D) is the correct answer?
+4. Does the difficulty level match the question complexity?
+5. Are there any ambiguities or issues?
+6. What improvements could be made?
+
+CRITICAL: You must determine which option (A, B, C, or D) is the actual correct answer based on the question content. Return this in the "correctOption" field. If the marked answer is correct, return the same option. If wrong, return the actual correct option.
+
+Provide your analysis in the JSON format specified.`;
+
+    // Call OpenAI API
+    const completion = await openai.chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.3, // Lower temperature for more consistent evaluation
+      max_tokens: 1500,
+      response_format: { type: 'json_object' }
+    });
+
+    // Parse AI response
+    const aiResponse = completion.choices[0]?.message?.content;
+    if (!aiResponse) {
+      throw new Error('No response from AI');
+    }
+
+    // Parse JSON response
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(aiResponse);
+    } catch (parseError) {
+      // Try to extract JSON from markdown if present
+      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        parsedResponse = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error('Invalid JSON response from AI');
+      }
+    }
+
+    // Format response
+    const aiCorrectOption = parsedResponse.correctOption || correctOption; // AI's suggested correct option
+    const isAnswerCorrect = parsedResponse.isAnswerCorrect !== false && 
+                           (aiCorrectOption.toUpperCase() === correctOption.toUpperCase()); // Default to true if not specified
+    const correctnessFeedback = parsedResponse.feedback?.correctness || '';
+    const correctnessLower = correctnessFeedback.toLowerCase();
+    
+    // Check if AI explicitly says answer is wrong
+    const answerIsIncorrect = parsedResponse.isAnswerCorrect === false ||
+                              correctnessLower.includes('không đúng') ||
+                              correctnessLower.includes('sai') ||
+                              correctnessLower.includes('incorrect') ||
+                              correctnessLower.includes('wrong') ||
+                              correctnessLower.includes('không chính xác') ||
+                              correctnessLower.includes('the answer is incorrect') ||
+                              correctnessLower.includes('the marked answer is incorrect') ||
+                              (aiCorrectOption.toUpperCase() !== correctOption.toUpperCase());
+
+    const validationResult = {
+      isValid: parsedResponse.isValid !== false && !answerIsIncorrect,
+      overallScore: parsedResponse.overallScore || 0,
+      feedback: parsedResponse.feedback || {},
+      suggestions: parsedResponse.suggestions || [],
+      strengths: parsedResponse.strengths || [],
+      issues: parsedResponse.issues || [],
+      recommendedDifficulty: parsedResponse.recommendedDifficulty || difficulty || 'medium',
+      isReady: parsedResponse.isReady !== false && !answerIsIncorrect,
+      isAnswerCorrect: !answerIsIncorrect,
+      correctOption: aiCorrectOption.toUpperCase(), // AI's suggested correct option
+      currentOption: correctOption.toUpperCase() // Current marked option
+    };
+
+    res.json({
+      success: true,
+      message: 'Question validation completed',
+      validation: validationResult
+    });
+
+  } catch (error) {
+    console.error('Error validating question with AI:', error);
+    
+    // Handle OpenAI API errors
+    if (error.status || error.response) {
+      return res.status(error.status || 500).json({
+        success: false,
+        message: error.message || 'OpenAI API error',
+        error: error.type || 'api_error'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to validate question',
+      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};
+
+/**
  * Health check for AI service
  * GET /api/ai/health
  */
