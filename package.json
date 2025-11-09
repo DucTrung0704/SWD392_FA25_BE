@@ -28,6 +28,7 @@
     "nanoid": "^5.1.5",
     "nodemailer": "^7.0.9",
     "nodemon": "^3.1.10",
+    "openai": "^6.8.1",
     "pdf-parse": "^1.1.1",
     "sharp": "^0.33.2",
     "socket.io": "^4.7.5",
