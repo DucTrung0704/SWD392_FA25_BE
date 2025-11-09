@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
     name: { 
@@ -52,4 +53,45 @@ const userSchema = new mongoose.Schema({
     }
 });
 
+// Tự động hash password nếu chưa được hash trước khi lưu
+userSchema.pre('save', async function(next) {
+    try {
+        if (!this.isModified('password')) {
+            return next();
+        }
+
+        if (this.password && !this.password.startsWith('$2')) {
+            this.password = await bcrypt.hash(this.password, 10);
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
+// Hash password trong update operations (findOneAndUpdate)
+userSchema.pre('findOneAndUpdate', async function(next) {
+    try {
+        const update = this.getUpdate();
+        if (!update) {
+            return next();
+        }
+
+        // Nếu password nằm trong $set
+        const password = update.password || update.$set?.password;
+        if (password && !password.startsWith('$2')) {
+            const hashed = await bcrypt.hash(password, 10);
+            if (update.password) {
+                update.password = hashed;
+            } else {
+                update.$set.password = hashed;
+            }
+        }
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
 export default mongoose.model('User', userSchema);
+

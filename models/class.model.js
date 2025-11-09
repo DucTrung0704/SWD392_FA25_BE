@@ -48,8 +48,8 @@ const classSchema = new mongoose.Schema({
     },
 });
 
-// Middleware để tự động tạo class_code trước khi save
-classSchema.pre('save', async function(next) {
+// Middleware để tự động tạo class_code trước khi validate (trước khi chạy required validator)
+classSchema.pre('validate', async function(next) {
     if (this.isNew && !this.class_code) {
         // Tạo class_code ngẫu nhiên 6 ký tự
         let code;
