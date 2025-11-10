@@ -164,16 +164,28 @@ Make sure the questions are clear, educational, and test understanding of the to
     
     // Handle OpenAI API errors
     if (error.status || error.response) {
+      let errorMessage = error.message || 'OpenAI API error';
+      
+      // Provide more specific error messages
+      if (errorMessage.includes('Incorrect API key') || errorMessage.includes('Invalid API key')) {
+        errorMessage = 'API key không hợp lệ. Vui lòng kiểm tra lại OPENAI_API_KEY trong file .env';
+      } else if (errorMessage.includes('quota') || errorMessage.includes('billing')) {
+        errorMessage = 'Tài khoản OpenAI đã hết quota hoặc chưa nạp tiền. Vui lòng kiểm tra billing tại https://platform.openai.com/account/billing';
+      } else if (errorMessage.includes('rate limit')) {
+        errorMessage = 'Đã vượt quá giới hạn rate limit. Vui lòng thử lại sau vài phút.';
+      }
+      
       return res.status(error.status || 500).json({
         success: false,
-        message: error.message || 'OpenAI API error',
-        error: error.type || 'api_error'
+        message: errorMessage,
+        error: error.type || 'api_error',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
 
     res.status(500).json({
       success: false,
-      message: error.message || 'Failed to generate questions',
+      message: error.message || 'Không thể tạo câu hỏi. Vui lòng thử lại.',
       error: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
@@ -336,16 +348,28 @@ Each flashcard should have a clear question/term on the front and an informative
     
     // Handle OpenAI API errors
     if (error.status || error.response) {
+      let errorMessage = error.message || 'OpenAI API error';
+      
+      // Provide more specific error messages
+      if (errorMessage.includes('Incorrect API key') || errorMessage.includes('Invalid API key')) {
+        errorMessage = 'API key không hợp lệ. Vui lòng kiểm tra lại OPENAI_API_KEY trong file .env';
+      } else if (errorMessage.includes('quota') || errorMessage.includes('billing')) {
+        errorMessage = 'Tài khoản OpenAI đã hết quota hoặc chưa nạp tiền. Vui lòng kiểm tra billing tại https://platform.openai.com/account/billing';
+      } else if (errorMessage.includes('rate limit')) {
+        errorMessage = 'Đã vượt quá giới hạn rate limit. Vui lòng thử lại sau vài phút.';
+      }
+      
       return res.status(error.status || 500).json({
         success: false,
-        message: error.message || 'OpenAI API error',
-        error: error.type || 'api_error'
+        message: errorMessage,
+        error: error.type || 'api_error',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
 
     res.status(500).json({
       success: false,
-      message: error.message || 'Failed to generate flashcards',
+      message: error.message || 'Không thể tạo flashcard. Vui lòng thử lại.',
       error: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
@@ -397,10 +421,14 @@ Your task is to evaluate the quality, clarity, and educational value of a questi
 
 IMPORTANT: You must carefully check if the marked correct answer is actually correct based on the question content. If the answer is wrong, you MUST clearly state this.
 
+CRITICAL: If the subject is Mathematics, you MUST check if the question is actually related to Mathematics. If the question is NOT about Mathematics (e.g., it's about history, literature, science, etc.), you MUST set "isSubjectRelevant" to false and clearly state this in the feedback.
+
 Analyze the question and provide feedback in JSON format:
 {
   "isValid": true/false,
   "overallScore": 0-100,
+  "isSubjectRelevant": true/false,
+  "subjectRelevance": "Is this question actually about ${subject || 'Mathematics'}? If NO, clearly state 'Câu hỏi này không liên quan đến ${subject || 'Toán học'}' or 'This question is not related to ${subject || 'Mathematics'}'. If YES, state 'Câu hỏi liên quan đến ${subject || 'Toán học'}' or 'This question is related to ${subject || 'Mathematics'}'. Be specific about why.",
   "feedback": {
     "clarity": "Is the question clear and unambiguous?",
     "difficulty": "Does the difficulty match the stated level?",
@@ -415,7 +443,7 @@ Analyze the question and provide feedback in JSON format:
     "What the question does well"
   ],
   "issues": [
-    "Any problems or concerns. If the answer is wrong, include 'Đáp án được đánh dấu không đúng' or 'The marked answer is incorrect'"
+    "Any problems or concerns. If the answer is wrong, include 'Đáp án được đánh dấu không đúng' or 'The marked answer is incorrect'. If the question is not about ${subject || 'Mathematics'}, include 'Câu hỏi này không liên quan đến ${subject || 'Toán học'}' or 'This question is not related to ${subject || 'Mathematics'}'"
   ],
   "recommendedDifficulty": "easy/medium/hard",
   "isReady": true/false,
@@ -423,7 +451,7 @@ Analyze the question and provide feedback in JSON format:
   "correctOption": "A/B/C/D - The actual correct option based on the question. Return the option letter (A, B, C, or D) that is the correct answer. If the marked answer is correct, return the same option. If wrong, return the actual correct option."
 }
 
-Be thorough but constructive. Provide specific, actionable feedback. If the answer is wrong, make it VERY clear in the correctness field and set isAnswerCorrect to false.`;
+Be thorough but constructive. Provide specific, actionable feedback. If the answer is wrong, make it VERY clear in the correctness field and set isAnswerCorrect to false. If the question is not about ${subject || 'Mathematics'}, make it VERY clear and set isSubjectRelevant to false.`;
 
     const userPrompt = `Please review this multiple-choice question:
 
@@ -504,16 +532,28 @@ Provide your analysis in the JSON format specified.`;
                               correctnessLower.includes('the marked answer is incorrect') ||
                               (aiCorrectOption.toUpperCase() !== correctOption.toUpperCase());
 
+    // Check if question is relevant to subject
+    const isSubjectRelevant = parsedResponse.isSubjectRelevant !== false; // Default to true if not specified
+    const subjectRelevanceFeedback = parsedResponse.subjectRelevance || '';
+    const subjectRelevanceLower = subjectRelevanceFeedback.toLowerCase();
+    const subjectIsNotRelevant = parsedResponse.isSubjectRelevant === false ||
+                                 subjectRelevanceLower.includes('không liên quan') ||
+                                 subjectRelevanceLower.includes('not related') ||
+                                 subjectRelevanceLower.includes('không phải') ||
+                                 subjectRelevanceLower.includes('is not about');
+
     const validationResult = {
-      isValid: parsedResponse.isValid !== false && !answerIsIncorrect,
+      isValid: parsedResponse.isValid !== false && !answerIsIncorrect && isSubjectRelevant && !subjectIsNotRelevant,
       overallScore: parsedResponse.overallScore || 0,
       feedback: parsedResponse.feedback || {},
       suggestions: parsedResponse.suggestions || [],
       strengths: parsedResponse.strengths || [],
       issues: parsedResponse.issues || [],
       recommendedDifficulty: parsedResponse.recommendedDifficulty || difficulty || 'medium',
-      isReady: parsedResponse.isReady !== false && !answerIsIncorrect,
+      isReady: parsedResponse.isReady !== false && !answerIsIncorrect && isSubjectRelevant && !subjectIsNotRelevant,
       isAnswerCorrect: !answerIsIncorrect,
+      isSubjectRelevant: isSubjectRelevant && !subjectIsNotRelevant,
+      subjectRelevance: parsedResponse.subjectRelevance || subjectRelevanceFeedback,
       correctOption: aiCorrectOption.toUpperCase(), // AI's suggested correct option
       currentOption: correctOption.toUpperCase() // Current marked option
     };

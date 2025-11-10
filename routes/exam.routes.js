@@ -31,12 +31,15 @@ router.get('/all/:id', verifyToken, getExamById);
 // IMPORTANT: Specific routes must come before parameterized routes
 router.post('/teacher/create', verifyToken, requireTeacherOrAdmin, createExam);
 router.get('/teacher/my-exams', verifyToken, requireTeacherOrAdmin, getMyExams);
-router.put('/teacher/update/:id', verifyToken, requireTeacherOrAdmin, checkOwnership(), updateExam);
-router.delete('/teacher/delete/:id', verifyToken, requireTeacherOrAdmin, checkOwnership(), deleteExam);
 
-// Question management routes (from question bank)
+// Question management routes (from question bank) - must come before /teacher/:id
 router.post('/teacher/:id/add-questions', verifyToken, requireTeacherOrAdmin, checkOwnership(), addQuestionsToExam);
 router.post('/teacher/:id/remove-questions', verifyToken, requireTeacherOrAdmin, checkOwnership(), removeQuestionsFromExam);
+
+// Generic routes - must come after specific routes
+router.get('/teacher/:id', verifyToken, requireTeacherOrAdmin, getExamById);
+router.put('/teacher/update/:id', verifyToken, requireTeacherOrAdmin, checkOwnership(), updateExam);
+router.delete('/teacher/delete/:id', verifyToken, requireTeacherOrAdmin, checkOwnership(), deleteExam);
 
 // ==================================================
 // 👨‍💼 ADMIN ROUTES (Chỉ Admin)
